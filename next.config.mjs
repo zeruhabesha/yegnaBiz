@@ -9,12 +9,20 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Vercel video optimization
+  experimental: {
+    // Enable video support
+    video: true,
+  },
+  // Headers for video serving
   async headers() {
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
       "font-src 'self' data:",
       "img-src 'self' data: blob:",
+      // Allow video files
+      "media-src 'self' data: blob:",
       // Allow Google reCAPTCHA
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
       "style-src 'self' 'unsafe-inline'",

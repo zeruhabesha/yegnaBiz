@@ -19,7 +19,7 @@ export function SearchHero() {
 
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
-      {/* Video Background */}
+      {/* Video Background with Multiple Fallbacks */}
       <div className="absolute inset-0">
         <video
           autoPlay
@@ -28,8 +28,12 @@ export function SearchHero() {
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
           style={{ filter: 'brightness(0.4) contrast(1.1)' }}
+          preload="metadata"
         >
+          {/* Primary video source */}
           <source src="/Map_Search.mp4" type="video/mp4" />
+          {/* WebM fallback for better browser support */}
+          <source src="/Map_Search.webm" type="video/webm" />
           {/* Fallback static background */}
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
