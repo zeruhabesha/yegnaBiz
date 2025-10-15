@@ -25,6 +25,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
+# Large files that should never be committed
+*.7z
+*.iso
+*.img
+*.vdi
+*.vmdk
+*.ova
+*.qcow2
+*.vhdx
+kali-linux-*
+
 # IDE and editor files
 .vscode/
 .idea/
