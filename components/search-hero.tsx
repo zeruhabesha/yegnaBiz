@@ -19,11 +19,25 @@ export function SearchHero() {
 
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/hero-home.jpg')" }}
-      >
+      {/* Video Background */}
+      <div className="absolute inset-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: 'brightness(0.4) contrast(1.1)' }}
+        >
+          <source src="/Map_Search.mp4" type="video/mp4" />
+          {/* Fallback static background */}
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 600\" fill=\"%23f0f0f0\"%3E%3Crect width=\"1200\" height=\"600\" fill=\"%23e5e7eb\"/%3E%3Ctext x=\"600\" y=\"300\" text-anchor=\"middle\" font-family=\"Arial\" font-size=\"24\" fill=\"%236b7280\"%3EMap Search Background Video%3C/text%3E%3C/svg%3E')"
+            }}
+          />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-primary/80"></div>
       </div>
 
