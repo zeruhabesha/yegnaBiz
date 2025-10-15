@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, MoreVertical, Shield, Ban } from "@/components/icons"
+import { Search, Filter, MoreVertical, Shield, Ban, Edit, CheckCircle, XCircle, Users, X } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,12 +15,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+
+interface User {
+  id: number
+  fullName: string
+  email: string
+  role: string
+  status: string
+  joinedAt: string
+  companies: number
+  lastLogin?: string
+  phone?: string
+  location?: string
+}
 
 export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [roleFilter, setRoleFilter] = useState("all")
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [actionUser, setActionUser] = useState<User | null>(null)
+  const [actionType, setActionType] = useState<"suspend" | "activate" | "delete" | null>(null)
 
-  // Mock user data
-  const users = [
+  // Enhanced mock user data with more details
+  const [users, setUsers] = useState<User[]>([
     {
       id: 1,
       fullName: "Admin User",
@@ -29,6 +51,9 @@ export default function AdminUsersPage() {
       status: "active",
       joinedAt: "2024-01-15",
       companies: 0,
+      lastLogin: "2024-12-20T10:30:00Z",
+      phone: "+251911000000",
+      location: "Addis Ababa",
     },
     {
       id: 2,
@@ -38,6 +63,9 @@ export default function AdminUsersPage() {
       status: "active",
       joinedAt: "2024-03-20",
       companies: 1,
+      lastLogin: "2024-12-19T15:45:00Z",
+      phone: "+251922111111",
+      location: "Addis Ababa",
     },
     {
       id: 3,
@@ -47,6 +75,9 @@ export default function AdminUsersPage() {
       status: "active",
       joinedAt: "2024-05-10",
       companies: 1,
+      lastLogin: "2024-12-18T09:20:00Z",
+      phone: "+251933222222",
+      location: "Hawassa",
     },
     {
       id: 4,
@@ -56,14 +87,98 @@ export default function AdminUsersPage() {
       status: "active",
       joinedAt: "2024-08-05",
       companies: 0,
+      lastLogin: "2024-12-17T14:10:00Z",
+      phone: "+251944333333",
+      location: "Dire Dawa",
     },
-  ]
+    {
+      id: 5,
+      fullName: "Meron Tadesse",
+      email: "meron@example.com",
+      role: "user",
+      status: "suspended",
+      joinedAt: "2024-07-12",
+      companies: 0,
+      lastLogin: "2024-12-10T11:00:00Z",
+      phone: "+251955444444",
+      location: "Mekelle",
+    },
+  ])
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+
+    const matchesStatus = statusFilter === "all" || user.status === statusFilter
+    const matchesRole = roleFilter === "all" || user.role === roleFilter
+
+    return matchesSearch && matchesStatus && matchesRole
+  })
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user)
+  }
+
+  const handleSaveUser = () => {
+    if (editingUser) {
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? editingUser : u))
+      setEditingUser(null)
+    }
+  }
+
+  const handleUserAction = (action: "suspend" | "activate" | "delete", user: User) => {
+    setActionUser(user)
+    setActionType(action)
+  }
+
+  const confirmUserAction = () => {
+    if (actionUser && actionType) {
+      if (actionType === "delete") {
+        setUsers(prev => prev.filter(u => u.id !== actionUser.id))
+      } else {
+        setUsers(prev => prev.map(u =>
+          u.id === actionUser.id
+            ? { ...u, status: actionType === "suspend" ? "suspended" : "active" }
+            : u
+        ))
+      }
+      setActionUser(null)
+      setActionType(null)
+    }
+  }
+
+  const handleRoleChange = (userId: number, newRole: string) => {
+    setUsers(prev => prev.map(u =>
+      u.id === userId ? { ...u, role: newRole } : u
+    ))
+  }
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "active":
+        return "default"
+      case "suspended":
+        return "destructive"
+      case "pending":
+        return "secondary"
+      default:
+        return "secondary"
+    }
+  }
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "default"
+      case "business_owner":
+        return "secondary"
+      case "user":
+        return "outline"
+      default:
+        return "outline"
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -72,13 +187,24 @@ export default function AdminUsersPage() {
         <p className="text-muted-foreground">View and moderate platform users</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">8,921</div>
+            <div className="text-3xl font-bold">{users.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {users.filter(u => u.status === "active").length}
+            </div>
           </CardContent>
         </Card>
 
@@ -87,16 +213,20 @@ export default function AdminUsersPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Business Owners</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">2,543</div>
+            <div className="text-3xl font-bold">
+              {users.filter(u => u.role === "business_owner").length}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">New This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Suspended</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">234</div>
+            <div className="text-3xl font-bold">
+              {users.filter(u => u.status === "suspended").length}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -118,9 +248,28 @@ export default function AdminUsersPage() {
                   className="pl-9"
                 />
               </div>
-              <Button variant="outline" size="icon" className="bg-transparent">
-                <Filter className="h-4 w-4" />
-              </Button>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="business_owner">Business Owner</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -133,7 +282,7 @@ export default function AdminUsersPage() {
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Companies</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead>Last Login</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -155,24 +304,44 @@ export default function AdminUsersPage() {
                           <div>
                             <p className="font-medium">{user.fullName}</p>
                             <p className="text-sm text-muted-foreground">{user.email}</p>
+                            {user.location && (
+                              <p className="text-xs text-muted-foreground">{user.location}</p>
+                            )}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                          {user.role.replace("_", " ")}
-                        </Badge>
+                        <Select
+                          value={user.role}
+                          onValueChange={(value) => handleRoleChange(user.id, value)}
+                        >
+                          <SelectTrigger className="w-32 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="business_owner">Business Owner</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.status === "active" ? "default" : "secondary"}>{user.status}</Badge>
+                        <Badge variant={getStatusBadgeVariant(user.status)}>
+                          {user.status}
+                        </Badge>
                       </TableCell>
                       <TableCell>{user.companies}</TableCell>
                       <TableCell>
-                        {new Date(user.joinedAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {user.lastLogin ? (
+                          new Date(user.lastLogin).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        ) : (
+                          <span className="text-muted-foreground">Never</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -182,15 +351,33 @@ export default function AdminUsersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View Profile</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit User
+                            </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Shield className="mr-2 h-4 w-4" />
-                              Change Role
+                              View Profile
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
-                              <Ban className="mr-2 h-4 w-4" />
-                              Suspend User
+                            {user.status === "active" ? (
+                              <DropdownMenuItem onClick={() => handleUserAction("suspend", user)}>
+                                <Ban className="mr-2 h-4 w-4" />
+                                Suspend User
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleUserAction("activate", user)}>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Activate User
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleUserAction("delete", user)}
+                            >
+                              <X className="mr-2 h-4 w-4" />
+                              Delete User
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -203,6 +390,105 @@ export default function AdminUsersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information and permissions.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingUser && (
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-fullName">Full Name</Label>
+                <Input
+                  id="edit-fullName"
+                  value={editingUser.fullName}
+                  onChange={(e) => setEditingUser({...editingUser, fullName: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editingUser.email}
+                  onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input
+                  id="edit-phone"
+                  value={editingUser.phone || ""}
+                  onChange={(e) => setEditingUser({...editingUser, phone: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-location">Location</Label>
+                <Input
+                  id="edit-location"
+                  value={editingUser.location || ""}
+                  onChange={(e) => setEditingUser({...editingUser, location: e.target.value})}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveUser}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Confirmation Dialog */}
+      <AlertDialog open={!!actionUser && !!actionType} onOpenChange={(open) => !open && setActionUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {actionType === "delete" && "Delete User"}
+              {actionType === "suspend" && "Suspend User"}
+              {actionType === "activate" && "Activate User"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {actionType === "delete" &&
+                `Are you sure you want to delete ${actionUser?.fullName}? This action cannot be undone.`
+              }
+              {actionType === "suspend" &&
+                `Are you sure you want to suspend ${actionUser?.fullName}? They will lose access to their account.`
+              }
+              {actionType === "activate" &&
+                `Are you sure you want to activate ${actionUser?.fullName}? They will regain access to their account.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {setActionUser(null); setActionType(null)}}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmUserAction}
+              className={actionType === "delete" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              {actionType === "delete" && "Delete"}
+              {actionType === "suspend" && "Suspend"}
+              {actionType === "activate" && "Activate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

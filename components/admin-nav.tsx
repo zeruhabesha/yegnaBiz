@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building2, Users, Star, Settings, TrendingUp } from "@/components/icons"
+import { Building2, Users, Star, Settings, TrendingUp, Target } from "@/components/icons"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -30,6 +30,11 @@ const navItems = [
     title: "Reviews",
     href: "/admin/reviews",
     icon: Star,
+  },
+  {
+    title: "Promotions",
+    href: "/admin/promotions",
+    icon: Target,
   },
   {
     title: "Settings",
