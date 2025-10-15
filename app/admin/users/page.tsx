@@ -17,8 +17,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 interface User {
   id: number
@@ -167,19 +165,6 @@ export default function AdminUsersPage() {
     }
   }
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "default"
-      case "business_owner":
-        return "secondary"
-      case "user":
-        return "outline"
-      default:
-        return "outline"
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -248,28 +233,26 @@ export default function AdminUsersPage() {
                   className="pl-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="business_owner">Business Owner</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-32"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="pending">Pending</option>
+              </select>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-32"
+              >
+                <option value="all">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="business_owner">Business Owner</option>
+                <option value="user">User</option>
+              </select>
             </div>
           </div>
         </CardHeader>
@@ -311,19 +294,15 @@ export default function AdminUsersPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Select
+                        <select
                           value={user.role}
-                          onValueChange={(value) => handleRoleChange(user.id, value)}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          className="px-2 py-1 border border-input bg-background rounded text-sm w-32"
                         >
-                          <SelectTrigger className="w-32 h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="user">User</SelectItem>
-                            <SelectItem value="business_owner">Business Owner</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <option value="user">User</option>
+                          <option value="business_owner">Business Owner</option>
+                          <option value="admin">Admin</option>
+                        </select>
                       </TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(user.status)}>
@@ -454,15 +433,15 @@ export default function AdminUsersPage() {
       </Dialog>
 
       {/* Action Confirmation Dialog */}
-      <AlertDialog open={!!actionUser && !!actionType} onOpenChange={(open) => !open && setActionUser(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
+      <Dialog open={!!actionUser && !!actionType} onOpenChange={(open) => !open && setActionUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
               {actionType === "delete" && "Delete User"}
               {actionType === "suspend" && "Suspend User"}
               {actionType === "activate" && "Activate User"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
+            </DialogTitle>
+            <DialogDescription>
               {actionType === "delete" &&
                 `Are you sure you want to delete ${actionUser?.fullName}? This action cannot be undone.`
               }
@@ -472,23 +451,23 @@ export default function AdminUsersPage() {
               {actionType === "activate" &&
                 `Are you sure you want to activate ${actionUser?.fullName}? They will regain access to their account.`
               }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {setActionUser(null); setActionType(null)}}>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {setActionUser(null); setActionType(null)}}>
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
+              variant={actionType === "delete" ? "destructive" : "default"}
               onClick={confirmUserAction}
-              className={actionType === "delete" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
             >
               {actionType === "delete" && "Delete"}
               {actionType === "suspend" && "Suspend"}
               {actionType === "activate" && "Activate"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

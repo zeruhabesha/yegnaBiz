@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, MoreVertical, Plus, Edit, Trash2, Eye, EyeOff, Calendar, TrendingUp } from "@/components/icons"
+import { Search, Filter, MoreVertical, Plus, Edit, Trash2, Eye, Calendar, TrendingUp } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,13 +14,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Mock promotional campaigns data
-const mockPromotions = [
+const promotions = [
   {
     id: 1,
     title: "New Year Special Offers",
@@ -92,9 +91,9 @@ export default function AdminPromoPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [editingPromo, setEditingPromo] = useState<typeof mockPromotions[0] | null>(null)
+  const [editingPromo, setEditingPromo] = useState<typeof promotions[0] | null>(null)
 
-  const filteredPromotions = mockPromotions.filter((promo) => {
+  const filteredPromotions = promotions.filter((promo) => {
     const matchesSearch =
       promo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       promo.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -109,18 +108,15 @@ export default function AdminPromoPage() {
     setIsCreateDialogOpen(true)
   }
 
-  const handleEditPromo = (promo: typeof mockPromotions[0]) => {
+  const handleEditPromo = (promo: typeof promotions[0]) => {
     setEditingPromo(promo)
   }
 
   const handleDeletePromo = (promoId: number) => {
-    // In a real app, this would call an API to delete the promotion
     console.log("Delete promotion:", promoId)
-    // Show confirmation dialog first
   }
 
   const handleToggleVisibility = (promoId: number) => {
-    // In a real app, this would call an API to toggle visibility
     console.log("Toggle visibility for promotion:", promoId)
   }
 
@@ -165,7 +161,6 @@ export default function AdminPromoPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-3">
@@ -173,7 +168,7 @@ export default function AdminPromoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {mockPromotions.filter((p) => p.status === "active").length}
+              {promotions.filter((p) => p.status === "active").length}
             </div>
           </CardContent>
         </Card>
@@ -184,7 +179,7 @@ export default function AdminPromoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {mockPromotions.reduce((sum, p) => sum + p.clicks, 0).toLocaleString()}
+              {promotions.reduce((sum, p) => sum + p.clicks, 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -195,7 +190,7 @@ export default function AdminPromoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {mockPromotions.reduce((sum, p) => sum + p.conversions, 0).toLocaleString()}
+              {promotions.reduce((sum, p) => sum + p.conversions, 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -206,13 +201,12 @@ export default function AdminPromoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              ₿{mockPromotions.reduce((sum, p) => sum + p.spent, 0).toLocaleString()}
+              ₿{promotions.reduce((sum, p) => sum + p.spent, 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -230,29 +224,27 @@ export default function AdminPromoPage() {
                   className="pl-9"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="paused">Paused</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="banner">Banner</SelectItem>
-                  <SelectItem value="popup">Popup</SelectItem>
-                  <SelectItem value="featured">Featured</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-32"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="paused">Paused</option>
+              </select>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-32"
+              >
+                <option value="all">All Types</option>
+                <option value="banner">Banner</option>
+                <option value="popup">Popup</option>
+                <option value="featured">Featured</option>
+              </select>
             </div>
           </div>
         </CardHeader>
@@ -324,11 +316,7 @@ export default function AdminPromoPage() {
                           onClick={() => handleToggleVisibility(promo.id)}
                           title={promo.isVisible ? "Hide campaign" : "Show campaign"}
                         >
-                          {promo.isVisible ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4" />
-                          )}
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -365,7 +353,6 @@ export default function AdminPromoPage() {
         </CardContent>
       </Card>
 
-      {/* Create/Edit Campaign Dialog */}
       <Dialog open={isCreateDialogOpen || !!editingPromo} onOpenChange={(open) => {
         if (!open) {
           setIsCreateDialogOpen(false)
@@ -397,16 +384,15 @@ export default function AdminPromoPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="type">Campaign Type</Label>
-                <Select defaultValue={editingPromo?.type || ""}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="banner">Banner</SelectItem>
-                    <SelectItem value="popup">Popup</SelectItem>
-                    <SelectItem value="featured">Featured</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  defaultValue={editingPromo?.type || ""}
+                  className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full"
+                >
+                  <option value="">Select type</option>
+                  <option value="banner">Banner</option>
+                  <option value="popup">Popup</option>
+                  <option value="featured">Featured</option>
+                </select>
               </div>
             </div>
 
@@ -451,17 +437,16 @@ export default function AdminPromoPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="targetAudience">Target Audience</Label>
-                <Select defaultValue={editingPromo?.targetAudience || ""}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select audience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_users">All Users</SelectItem>
-                    <SelectItem value="premium_users">Premium Users</SelectItem>
-                    <SelectItem value="food_lovers">Food Lovers</SelectItem>
-                    <SelectItem value="shoppers">Shoppers</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  defaultValue={editingPromo?.targetAudience || ""}
+                  className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full"
+                >
+                  <option value="">Select audience</option>
+                  <option value="all_users">All Users</option>
+                  <option value="premium_users">Premium Users</option>
+                  <option value="food_lovers">Food Lovers</option>
+                  <option value="shoppers">Shoppers</option>
+                </select>
               </div>
             </div>
           </div>
@@ -471,7 +456,6 @@ export default function AdminPromoPage() {
               Cancel
             </Button>
             <Button onClick={() => {
-              // Handle save logic here
               setIsCreateDialogOpen(false)
               setEditingPromo(null)
             }}>
