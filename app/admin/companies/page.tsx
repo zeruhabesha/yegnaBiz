@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Filter, MoreVertical, CheckCircle, XCircle, Edit, Plus, Eye, TrendingUp } from "@/components/icons"
+import { useState, useEffect } from "react"
+import { Search, Filter, MoreVertical, Plus, Edit, Trash2, Shield, CheckCircle, XCircle, Building2, X } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -16,71 +16,105 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { mockCompanies } from "@/lib/mock-data"
+import { getCompanies, updateCompany, deleteCompany, type Company } from "@/lib/api"
 
 export default function AdminCompaniesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [editingCompany, setEditingCompany] = useState<typeof mockCompanies[0] | null>(null)
-  const [actionCompany, setActionCompany] = useState<typeof mockCompanies[0] | null>(null)
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null)
+  const [actionCompany, setActionCompany] = useState<Company | null>(null)
   const [actionType, setActionType] = useState<"verify" | "unverify" | "suspend" | "activate" | "delete" | null>(null)
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const [companies, setCompanies] = useState(mockCompanies)
+  // Load companies on component mount and when filters change
+  useEffect(() => {
+    loadCompanies()
+  }, [searchQuery, statusFilter, categoryFilter])
 
-  const filteredCompanies = companies.filter((company) => {
-    const matchesSearch =
-      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.category.toLowerCase().includes(searchQuery.toLowerCase())
-
-    const matchesStatus = statusFilter === "all" || company.status === statusFilter
-    const matchesCategory = categoryFilter === "all" || company.category === categoryFilter
-
-    return matchesSearch && matchesStatus && matchesCategory
-  })
-
-  const handleEditCompany = (company: typeof mockCompanies[0]) => {
-    setEditingCompany(company)
-  }
-
-  const handleSaveCompany = () => {
-    if (editingCompany) {
-      setCompanies(prev => prev.map(c => c.id === editingCompany.id ? editingCompany : c))
-      setEditingCompany(null)
+  const loadCompanies = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await getCompanies(searchQuery, statusFilter, categoryFilter)
+      setCompanies(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load companies')
+      console.error('Error loading companies:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleCompanyAction = (action: "verify" | "unverify" | "suspend" | "activate" | "delete", company: typeof mockCompanies[0]) => {
+  const filteredCompanies = companies
+
+  const handleEditCompany = (company: Company) => {
+    setEditingCompany(company)
+  }
+
+  const handleSaveCompany = async () => {
+    if (!editingCompany) return
+
+    try {
+      await updateCompany(editingCompany.id, editingCompany)
+      setEditingCompany(null)
+      loadCompanies() // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update company')
+      console.error('Error updating company:', err)
+    }
+  }
+
+  const handleCompanyAction = (action: "verify" | "unverify" | "suspend" | "activate" | "delete", company: Company) => {
     setActionCompany(company)
     setActionType(action)
   }
 
-  const confirmCompanyAction = () => {
-    if (actionCompany && actionType) {
+  const confirmCompanyAction = async () => {
+    if (!actionCompany || !actionType) return
+
+    try {
       if (actionType === "delete") {
-        setCompanies(prev => prev.filter(c => c.id !== actionCompany.id))
+        await deleteCompany(actionCompany.id)
       } else {
-        setCompanies(prev => prev.map(c => {
-          if (c.id === actionCompany.id) {
-            switch (actionType) {
-              case "verify":
-                return { ...c, isVerified: true }
-              case "unverify":
-                return { ...c, isVerified: false }
-              case "suspend":
-                return { ...c, status: "suspended" }
-              case "activate":
-                return { ...c, status: "active" }
-              default:
-                return c
-            }
-          }
-          return c
-        }))
+        let updateData: Partial<Company> = {}
+
+        switch (actionType) {
+          case "verify":
+            updateData.is_verified = true
+            break
+          case "unverify":
+            updateData.is_verified = false
+            break
+          case "suspend":
+            updateData.status = "suspended"
+            break
+          case "activate":
+            updateData.status = "active"
+            break
+        }
+
+        await updateCompany(actionCompany.id, updateData)
       }
+
       setActionCompany(null)
       setActionType(null)
+      loadCompanies() // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to perform action')
+      console.error('Error performing company action:', err)
+    }
+  }
+
+  const handleStatusChange = async (companyId: number, newStatus: string) => {
+    try {
+      await updateCompany(companyId, { status: newStatus })
+      loadCompanies() // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status')
+      console.error('Error updating status:', err)
     }
   }
 
@@ -93,36 +127,32 @@ export default function AdminCompaniesPage() {
       case "pending":
         return "secondary"
       case "rejected":
-        return "destructive"
+        return "outline"
       default:
         return "secondary"
     }
   }
 
-  const getCategoryBadgeColor = (category: string) => {
-    // Simple color mapping for categories
-    const colors: { [key: string]: string } = {
-      "Restaurants & Cafes": "bg-orange-100 text-orange-800",
-      "Hotels & Lodging": "bg-blue-100 text-blue-800",
-      "Technology": "bg-green-100 text-green-800",
-      "Healthcare": "bg-red-100 text-red-800",
-      "Education": "bg-purple-100 text-purple-800",
-    }
-    return colors[category] || "bg-gray-100 text-gray-800"
+  if (loading && companies.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading companies...</div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Manage Companies</h2>
-          <p className="text-muted-foreground">View and moderate all business listings</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Company
-        </Button>
+      <div>
+        <h2 className="text-3xl font-bold mb-2">Manage Companies</h2>
+        <p className="text-muted-foreground">Review and moderate business listings</p>
       </div>
+
+      {error && (
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
@@ -140,18 +170,18 @@ export default function AdminCompaniesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {companies.filter(c => c.isVerified).length}
+              {companies.filter(c => c.is_verified).length}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {companies.filter(c => c.status === "pending").length}
+              {companies.filter(c => c.is_featured).length}
             </div>
           </CardContent>
         </Card>
@@ -164,7 +194,7 @@ export default function AdminCompaniesPage() {
             <div className="text-3xl font-bold">
               {companies.filter(c => c.status === "suspended").length}
             </div>
-          </CardContent>
+          </CardHeader>
         </Card>
       </div>
 
@@ -173,7 +203,7 @@ export default function AdminCompaniesPage() {
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             <div>
               <CardTitle>All Companies</CardTitle>
-              <CardDescription>{filteredCompanies.length} total listings</CardDescription>
+              <CardDescription>{filteredCompanies.length} registered businesses</CardDescription>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
               <div className="relative flex-1 md:w-64">
@@ -188,25 +218,27 @@ export default function AdminCompaniesPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-32"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
-                <option value="pending">Pending</option>
                 <option value="suspended">Suspended</option>
+                <option value="pending">Pending</option>
                 <option value="rejected">Rejected</option>
               </select>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+                className="px-3 py-2 border border-input bg-background rounded-md text-sm w-40"
               >
                 <option value="all">All Categories</option>
-                <option value="Restaurants & Cafes">Restaurants</option>
-                <option value="Hotels & Lodging">Hotels</option>
                 <option value="Technology">Technology</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Education">Education</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Finance">Finance</option>
+                <option value="Food & Beverage">Food & Beverage</option>
+                <option value="Construction">Construction</option>
+                <option value="Manufacturing">Manufacturing</option>
+                <option value="Hospitality">Hospitality</option>
               </select>
             </div>
           </div>
@@ -218,9 +250,9 @@ export default function AdminCompaniesPage() {
                 <TableRow>
                   <TableHead>Company</TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Rating</TableHead>
-                  <TableHead>Views</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -230,29 +262,34 @@ export default function AdminCompaniesPage() {
                     <TableCell>
                       <div>
                         <p className="font-medium">{company.name}</p>
-                        <p className="text-sm text-muted-foreground">{company.city}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{company.description || ""}</p>
+                        <p className="text-xs text-muted-foreground">{company.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getCategoryBadgeColor(company.category)}>
+                      <Badge variant="outline">
                         {company.category}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={getStatusBadgeVariant(company.status)}>
-                          {company.status}
-                        </Badge>
-                        {company.isVerified && <CheckCircle className="h-4 w-4 text-green-500" />}
+                      <div className="text-sm">
+                        <div>{company.city}</div>
+                        <div className="text-muted-foreground">{company.region}</div>
                       </div>
                     </TableCell>
                     <TableCell>
+                      <Badge variant={getStatusBadgeVariant(company.status)}>
+                        {company.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">{company.rating.toFixed(1)}</span>
-                        <span className="text-sm text-muted-foreground">({company.reviewCount})</span>
+                        <span className="text-sm font-medium">{company.rating}</span>
+                        <span className="text-sm text-muted-foreground">
+                          ({company.review_count} reviews)
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell>{company.viewCount.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -266,30 +303,30 @@ export default function AdminCompaniesPage() {
                             Edit Company
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
+                            <Building2 className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          {company.isVerified ? (
+                          {company.is_verified ? (
                             <DropdownMenuItem onClick={() => handleCompanyAction("unverify", company)}>
                               <XCircle className="mr-2 h-4 w-4" />
-                              Unverify
+                              Unverify Company
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => handleCompanyAction("verify", company)}>
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Verify
+                              Verify Company
                             </DropdownMenuItem>
                           )}
                           {company.status === "active" ? (
                             <DropdownMenuItem onClick={() => handleCompanyAction("suspend", company)}>
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Suspend
+                              <Shield className="mr-2 h-4 w-4" />
+                              Suspend Company
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => handleCompanyAction("activate", company)}>
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Activate
+                              Activate Company
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
@@ -297,8 +334,8 @@ export default function AdminCompaniesPage() {
                             className="text-destructive"
                             onClick={() => handleCompanyAction("delete", company)}
                           >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Delete
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Company
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -334,31 +371,41 @@ export default function AdminCompaniesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-category">Category</Label>
-                  <Input
-                    id="edit-category"
+                  <select
                     value={editingCompany.category}
                     onChange={(e) => setEditingCompany({...editingCompany, category: e.target.value})}
-                  />
+                    className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full"
+                  >
+                    <option value="Technology">Technology</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Food & Beverage">Food & Beverage</option>
+                    <option value="Construction">Construction</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Hospitality">Hospitality</option>
+                  </select>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="edit-description">Description</Label>
-                <Textarea
+                <textarea
                   id="edit-description"
-                  value={editingCompany.description}
+                  value={editingCompany.description || ""}
                   onChange={(e) => setEditingCompany({...editingCompany, description: e.target.value})}
-                  rows={3}
+                  className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full min-h-20"
+                  placeholder="Company description"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-city">City</Label>
+                  <Label htmlFor="edit-email">Email</Label>
                   <Input
-                    id="edit-city"
-                    value={editingCompany.city || ""}
-                    onChange={(e) => setEditingCompany({...editingCompany, city: e.target.value})}
+                    id="edit-email"
+                    type="email"
+                    value={editingCompany.email || ""}
+                    onChange={(e) => setEditingCompany({...editingCompany, email: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
@@ -373,19 +420,19 @@ export default function AdminCompaniesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-email">Email</Label>
+                  <Label htmlFor="edit-city">City</Label>
                   <Input
-                    id="edit-email"
-                    value={editingCompany.email || ""}
-                    onChange={(e) => setEditingCompany({...editingCompany, email: e.target.value})}
+                    id="edit-city"
+                    value={editingCompany.city}
+                    onChange={(e) => setEditingCompany({...editingCompany, city: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-website">Website</Label>
+                  <Label htmlFor="edit-region">Region</Label>
                   <Input
-                    id="edit-website"
-                    value={editingCompany.website || ""}
-                    onChange={(e) => setEditingCompany({...editingCompany, website: e.target.value})}
+                    id="edit-region"
+                    value={editingCompany.region}
+                    onChange={(e) => setEditingCompany({...editingCompany, region: e.target.value})}
                   />
                 </div>
               </div>
@@ -419,16 +466,16 @@ export default function AdminCompaniesPage() {
                 `Are you sure you want to delete ${actionCompany?.name}? This action cannot be undone.`
               }
               {actionType === "verify" &&
-                `Verify ${actionCompany?.name} as a legitimate business?`
+                `Are you sure you want to verify ${actionCompany?.name}? This will mark them as a trusted business.`
               }
               {actionType === "unverify" &&
-                `Remove verification status from ${actionCompany?.name}?`
+                `Are you sure you want to unverify ${actionCompany?.name}? They will lose their verified status.`
               }
               {actionType === "suspend" &&
-                `Suspend ${actionCompany?.name} from the platform?`
+                `Are you sure you want to suspend ${actionCompany?.name}? They will be hidden from public view.`
               }
               {actionType === "activate" &&
-                `Reactivate ${actionCompany?.name} on the platform?`
+                `Are you sure you want to activate ${actionCompany?.name}? They will become visible again.`
               }
             </DialogDescription>
           </DialogHeader>

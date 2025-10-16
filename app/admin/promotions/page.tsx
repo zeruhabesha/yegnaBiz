@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter, MoreVertical, Plus, Edit, Trash2, Eye, Calendar, TrendingUp } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,107 +17,70 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-
-// Mock promotional campaigns data
-const promotions = [
-  {
-    id: 1,
-    title: "New Year Special Offers",
-    description: "Special discounts for the new year celebration across all categories",
-    type: "banner",
-    status: "active",
-    startDate: "2024-12-25",
-    endDate: "2025-01-15",
-    targetAudience: "all_users",
-    clicks: 15420,
-    conversions: 2340,
-    budget: 50000,
-    spent: 35000,
-    createdAt: "2024-12-20",
-    isVisible: true,
-  },
-  {
-    id: 2,
-    title: "Restaurant Week Promotion",
-    description: "Highlighting top restaurants with exclusive deals",
-    type: "popup",
-    status: "active",
-    startDate: "2024-12-15",
-    endDate: "2024-12-22",
-    targetAudience: "food_lovers",
-    clicks: 8750,
-    conversions: 1200,
-    budget: 25000,
-    spent: 22000,
-    createdAt: "2024-12-10",
-    isVisible: true,
-  },
-  {
-    id: 3,
-    title: "Holiday Shopping Guide",
-    description: "Featured shopping destinations for holiday season",
-    type: "banner",
-    status: "scheduled",
-    startDate: "2024-12-20",
-    endDate: "2025-01-05",
-    targetAudience: "shoppers",
-    clicks: 0,
-    conversions: 0,
-    budget: 30000,
-    spent: 0,
-    createdAt: "2024-12-18",
-    isVisible: false,
-  },
-  {
-    id: 4,
-    title: "Business Excellence Awards",
-    description: "Promoting award-winning businesses",
-    type: "featured",
-    status: "completed",
-    startDate: "2024-11-01",
-    endDate: "2024-11-30",
-    targetAudience: "premium_users",
-    clicks: 25600,
-    conversions: 4100,
-    budget: 75000,
-    spent: 75000,
-    createdAt: "2024-10-25",
-    isVisible: false,
-  },
-]
+import { getPromotions, updatePromotion, deletePromotion, type Promotion } from "@/lib/api"
 
 export default function AdminPromoPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [editingPromo, setEditingPromo] = useState<typeof promotions[0] | null>(null)
+  const [editingPromo, setEditingPromo] = useState<Promotion | null>(null)
+  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredPromotions = promotions.filter((promo) => {
-    const matchesSearch =
-      promo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      promo.description.toLowerCase().includes(searchQuery.toLowerCase())
+  // Load promotions on component mount and when filters change
+  useEffect(() => {
+    loadPromotions()
+  }, [searchQuery, statusFilter, typeFilter])
 
-    const matchesStatus = statusFilter === "all" || promo.status === statusFilter
-    const matchesType = typeFilter === "all" || promo.type === typeFilter
+  const loadPromotions = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await getPromotions(searchQuery, statusFilter, typeFilter)
+      setPromotions(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load promotions')
+      console.error('Error loading promotions:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    return matchesSearch && matchesStatus && matchesType
-  })
+  const filteredPromotions = promotions
 
   const handleCreatePromo = () => {
     setIsCreateDialogOpen(true)
   }
 
-  const handleEditPromo = (promo: typeof promotions[0]) => {
+  const handleEditPromo = (promo: Promotion) => {
     setEditingPromo(promo)
   }
 
-  const handleDeletePromo = (promoId: number) => {
-    console.log("Delete promotion:", promoId)
+  const handleDeletePromo = async (promoId: number) => {
+    if (confirm("Are you sure you want to delete this promotion?")) {
+      try {
+        await deletePromotion(promoId)
+        loadPromotions() // Refresh the list
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete promotion')
+        console.error('Error deleting promotion:', err)
+      }
+    }
   }
 
-  const handleToggleVisibility = (promoId: number) => {
-    console.log("Toggle visibility for promotion:", promoId)
+  const handleToggleVisibility = async (promoId: number) => {
+    try {
+      const promo = promotions.find(p => p.id === promoId)
+      if (promo) {
+        await updatePromotion(promoId, { is_active: !promo.is_active })
+        loadPromotions() // Refresh the list
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle visibility')
+      console.error('Error toggling visibility:', err)
+    }
   }
 
   const getStatusBadgeVariant = (status: string) => {
@@ -148,6 +111,14 @@ export default function AdminPromoPage() {
     }
   }
 
+  if (loading && promotions.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading promotions...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -161,6 +132,12 @@ export default function AdminPromoPage() {
         </Button>
       </div>
 
+      {error && (
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-3">
@@ -168,7 +145,7 @@ export default function AdminPromoPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {promotions.filter((p) => p.status === "active").length}
+              {promotions.filter((p) => p.status === "active" && p.is_active).length}
             </div>
           </CardContent>
         </Card>
@@ -203,7 +180,7 @@ export default function AdminPromoPage() {
             <div className="text-3xl font-bold">
               ₿{promotions.reduce((sum, p) => sum + p.spent, 0).toLocaleString()}
             </div>
-          </CardContent>
+          </CardHeader>
         </Card>
       </div>
 
@@ -268,7 +245,7 @@ export default function AdminPromoPage() {
                     <TableCell>
                       <div>
                         <p className="font-medium">{promo.title}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{promo.description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{promo.description || ""}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -294,9 +271,9 @@ export default function AdminPromoPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{new Date(promo.startDate).toLocaleDateString()}</div>
+                        <div>{new Date(promo.start_date).toLocaleDateString()}</div>
                         <div className="text-muted-foreground">
-                          to {new Date(promo.endDate).toLocaleDateString()}
+                          to {new Date(promo.end_date).toLocaleDateString()}
                         </div>
                       </div>
                     </TableCell>
@@ -314,7 +291,7 @@ export default function AdminPromoPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleToggleVisibility(promo.id)}
-                          title={promo.isVisible ? "Hide campaign" : "Show campaign"}
+                          title={promo.is_active ? "Hide campaign" : "Show campaign"}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -412,7 +389,7 @@ export default function AdminPromoPage() {
                 <Input
                   id="startDate"
                   type="date"
-                  defaultValue={editingPromo?.startDate || ""}
+                  defaultValue={editingPromo?.start_date || ""}
                 />
               </div>
               <div className="space-y-2">
@@ -420,7 +397,7 @@ export default function AdminPromoPage() {
                 <Input
                   id="endDate"
                   type="date"
-                  defaultValue={editingPromo?.endDate || ""}
+                  defaultValue={editingPromo?.end_date || ""}
                 />
               </div>
             </div>
@@ -438,7 +415,7 @@ export default function AdminPromoPage() {
               <div className="space-y-2">
                 <Label htmlFor="targetAudience">Target Audience</Label>
                 <select
-                  defaultValue={editingPromo?.targetAudience || ""}
+                  defaultValue={editingPromo?.target_audience || ""}
                   className="px-3 py-2 border border-input bg-background rounded-md text-sm w-full"
                 >
                   <option value="">Select audience</option>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter, MoreVertical, Shield, Ban, Edit, CheckCircle, XCircle, Users, X } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,19 +17,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-
-interface User {
-  id: number
-  fullName: string
-  email: string
-  role: string
-  status: string
-  joinedAt: string
-  companies: number
-  lastLogin?: string
-  phone?: string
-  location?: string
-}
+import { getUsers, updateUser, deleteUser, type User } from "@/lib/api"
 
 export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -38,90 +26,45 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [actionUser, setActionUser] = useState<User | null>(null)
   const [actionType, setActionType] = useState<"suspend" | "activate" | "delete" | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Enhanced mock user data with more details
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      fullName: "Admin User",
-      email: "admin@yegnabiz.com",
-      role: "admin",
-      status: "active",
-      joinedAt: "2024-01-15",
-      companies: 0,
-      lastLogin: "2024-12-20T10:30:00Z",
-      phone: "+251911000000",
-      location: "Addis Ababa",
-    },
-    {
-      id: 2,
-      fullName: "Abebe Kebede",
-      email: "owner1@example.com",
-      role: "business_owner",
-      status: "active",
-      joinedAt: "2024-03-20",
-      companies: 1,
-      lastLogin: "2024-12-19T15:45:00Z",
-      phone: "+251922111111",
-      location: "Addis Ababa",
-    },
-    {
-      id: 3,
-      fullName: "Tigist Alemu",
-      email: "owner2@example.com",
-      role: "business_owner",
-      status: "active",
-      joinedAt: "2024-05-10",
-      companies: 1,
-      lastLogin: "2024-12-18T09:20:00Z",
-      phone: "+251933222222",
-      location: "Hawassa",
-    },
-    {
-      id: 4,
-      fullName: "Dawit Tesfaye",
-      email: "user1@example.com",
-      role: "user",
-      status: "active",
-      joinedAt: "2024-08-05",
-      companies: 0,
-      lastLogin: "2024-12-17T14:10:00Z",
-      phone: "+251944333333",
-      location: "Dire Dawa",
-    },
-    {
-      id: 5,
-      fullName: "Meron Tadesse",
-      email: "meron@example.com",
-      role: "user",
-      status: "suspended",
-      joinedAt: "2024-07-12",
-      companies: 0,
-      lastLogin: "2024-12-10T11:00:00Z",
-      phone: "+251955444444",
-      location: "Mekelle",
-    },
-  ])
+  // Load users on component mount and when filters change
+  useEffect(() => {
+    loadUsers()
+  }, [searchQuery, statusFilter, roleFilter])
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const loadUsers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await getUsers(searchQuery, statusFilter, roleFilter)
+      setUsers(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users')
+      console.error('Error loading users:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter
-    const matchesRole = roleFilter === "all" || user.role === roleFilter
-
-    return matchesSearch && matchesStatus && matchesRole
-  })
+  const filteredUsers = users
 
   const handleEditUser = (user: User) => {
     setEditingUser(user)
   }
 
-  const handleSaveUser = () => {
-    if (editingUser) {
-      setUsers(prev => prev.map(u => u.id === editingUser.id ? editingUser : u))
+  const handleSaveUser = async () => {
+    if (!editingUser) return
+
+    try {
+      await updateUser(editingUser.id, editingUser)
       setEditingUser(null)
+      loadUsers() // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update user')
+      console.error('Error updating user:', err)
     }
   }
 
@@ -130,26 +73,34 @@ export default function AdminUsersPage() {
     setActionType(action)
   }
 
-  const confirmUserAction = () => {
-    if (actionUser && actionType) {
+  const confirmUserAction = async () => {
+    if (!actionUser || !actionType) return
+
+    try {
       if (actionType === "delete") {
-        setUsers(prev => prev.filter(u => u.id !== actionUser.id))
+        await deleteUser(actionUser.id)
       } else {
-        setUsers(prev => prev.map(u =>
-          u.id === actionUser.id
-            ? { ...u, status: actionType === "suspend" ? "suspended" : "active" }
-            : u
-        ))
+        const newStatus = actionType === "suspend" ? "suspended" : "active"
+        await updateUser(actionUser.id, { status: newStatus })
       }
+
       setActionUser(null)
       setActionType(null)
+      loadUsers() // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to perform action')
+      console.error('Error performing user action:', err)
     }
   }
 
-  const handleRoleChange = (userId: number, newRole: string) => {
-    setUsers(prev => prev.map(u =>
-      u.id === userId ? { ...u, role: newRole } : u
-    ))
+  const handleRoleChange = async (userId: number, newRole: string) => {
+    try {
+      await updateUser(userId, { role: newRole })
+      loadUsers() // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update role')
+      console.error('Error updating role:', err)
+    }
   }
 
   const getStatusBadgeVariant = (status: string) => {
@@ -165,12 +116,26 @@ export default function AdminUsersPage() {
     }
   }
 
+  if (loading && users.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading users...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold mb-2">Manage Users</h2>
         <p className="text-muted-foreground">View and moderate platform users</p>
       </div>
+
+      {error && (
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
@@ -212,7 +177,7 @@ export default function AdminUsersPage() {
             <div className="text-3xl font-bold">
               {users.filter(u => u.status === "suspended").length}
             </div>
-          </CardContent>
+          </CardHeader>
         </Card>
       </div>
 
@@ -264,14 +229,13 @@ export default function AdminUsersPage() {
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Companies</TableHead>
                   <TableHead>Last Login</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => {
-                  const initials = user.fullName
+                  const initials = user.full_name
                     .split(" ")
                     .map((n) => n[0])
                     .join("")
@@ -285,7 +249,7 @@ export default function AdminUsersPage() {
                             <AvatarFallback>{initials}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{user.fullName}</p>
+                            <p className="font-medium">{user.full_name}</p>
                             <p className="text-sm text-muted-foreground">{user.email}</p>
                             {user.location && (
                               <p className="text-xs text-muted-foreground">{user.location}</p>
@@ -309,10 +273,9 @@ export default function AdminUsersPage() {
                           {user.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{user.companies}</TableCell>
                       <TableCell>
-                        {user.lastLogin ? (
-                          new Date(user.lastLogin).toLocaleDateString("en-US", {
+                        {user.updated_at ? (
+                          new Date(user.updated_at).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             hour: "2-digit",
@@ -386,8 +349,8 @@ export default function AdminUsersPage() {
                 <Label htmlFor="edit-fullName">Full Name</Label>
                 <Input
                   id="edit-fullName"
-                  value={editingUser.fullName}
-                  onChange={(e) => setEditingUser({...editingUser, fullName: e.target.value})}
+                  value={editingUser.full_name}
+                  onChange={(e) => setEditingUser({...editingUser, full_name: e.target.value})}
                 />
               </div>
 
@@ -443,13 +406,13 @@ export default function AdminUsersPage() {
             </DialogTitle>
             <DialogDescription>
               {actionType === "delete" &&
-                `Are you sure you want to delete ${actionUser?.fullName}? This action cannot be undone.`
+                `Are you sure you want to delete ${actionUser?.full_name}? This action cannot be undone.`
               }
               {actionType === "suspend" &&
-                `Are you sure you want to suspend ${actionUser?.fullName}? They will lose access to their account.`
+                `Are you sure you want to suspend ${actionUser?.full_name}? They will lose access to their account.`
               }
               {actionType === "activate" &&
-                `Are you sure you want to activate ${actionUser?.fullName}? They will regain access to their account.`
+                `Are you sure you want to activate ${actionUser?.full_name}? They will regain access to their account.`
               }
             </DialogDescription>
           </DialogHeader>

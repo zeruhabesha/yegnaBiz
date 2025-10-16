@@ -97,22 +97,23 @@ CREATE TABLE IF NOT EXISTS business_hours (
   UNIQUE(company_id, day_of_week)
 );
 
--- Create advertisements table
-CREATE TABLE IF NOT EXISTS advertisements (
+-- Create promotions table
+CREATE TABLE IF NOT EXISTS promotions (
   id SERIAL PRIMARY KEY,
-  company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   description TEXT,
-  image_url TEXT,
-  link_url TEXT,
-  ad_type VARCHAR(50) NOT NULL,
-  placement VARCHAR(50) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  status VARCHAR(20) DEFAULT 'active',
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
-  is_active BOOLEAN DEFAULT TRUE,
-  impressions INTEGER DEFAULT 0,
+  target_audience VARCHAR(100),
+  budget DECIMAL(10, 2) DEFAULT 0,
+  spent DECIMAL(10, 2) DEFAULT 0,
   clicks INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  conversions INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for better performance
