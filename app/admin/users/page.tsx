@@ -177,7 +177,7 @@ export default function AdminUsersPage() {
             <div className="text-3xl font-bold">
               {users.filter(u => u.status === "suspended").length}
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
       </div>
 

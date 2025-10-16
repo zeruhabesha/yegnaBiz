@@ -9,11 +9,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Vercel video optimization
-  experimental: {
-    // Enable video support
-    video: true,
-  },
   // Headers for video serving
   async headers() {
     const csp = [
