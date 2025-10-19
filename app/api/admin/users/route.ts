@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-here'
+import { hashPassword } from '@/lib/password'
 
 // GET /api/admin/users - Get all users with filtering
 export async function GET(request: NextRequest) {
@@ -68,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const password_hash = await bcrypt.hash(password, 10)
+    const password_hash = hashPassword(password)
 
     const result = await query(
       `INSERT INTO users (full_name, email, password_hash, role, phone, location, status)

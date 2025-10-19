@@ -194,7 +194,7 @@ export default function AdminCompaniesPage() {
             <div className="text-3xl font-bold">
               {companies.filter(c => c.status === "suspended").length}
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
       </div>
 
