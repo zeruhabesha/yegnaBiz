@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { deletePromotionById, getPromotionById, updatePromotionById } from '@/lib/mock-data'
 
 // GET /api/admin/promotions/[id] - Get single promotion
 export async function GET(
@@ -9,16 +9,9 @@ export async function GET(
   try {
     const { id } = params
 
-    const result = await query(`
-      SELECT
-        id, title, description, type, status, start_date, end_date,
-        target_audience, budget, spent, clicks, conversions,
-        is_active, created_at, updated_at
-      FROM promotions WHERE id = $1`,
-      [id]
-    )
+    const promotion = getPromotionById(Number(id))
 
-    if (result.rows.length === 0) {
+    if (!promotion) {
       return NextResponse.json(
         { success: false, error: 'Promotion not found' },
         { status: 404 }
@@ -27,7 +20,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: promotion
     })
   } catch (error) {
     console.error('Error fetching promotion:', error)
@@ -51,20 +44,22 @@ export async function PUT(
       target_audience, budget, spent, clicks, conversions, is_active
     } = body
 
-    const result = await query(
-      `UPDATE promotions SET
-        title = $1, description = $2, type = $3, status = $4, start_date = $5,
-        end_date = $6, target_audience = $7, budget = $8, spent = $9, clicks = $10,
-        conversions = $11, is_active = $12, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $13
-       RETURNING *`,
-      [
-        title, description, type, status, start_date, end_date,
-        target_audience, budget, spent, clicks, conversions, is_active, id
-      ]
-    )
+    const updated = updatePromotionById(Number(id), {
+      title,
+      description,
+      type,
+      status,
+      start_date,
+      end_date,
+      target_audience,
+      budget,
+      spent,
+      clicks,
+      conversions,
+      is_active,
+    })
 
-    if (result.rows.length === 0) {
+    if (!updated) {
       return NextResponse.json(
         { success: false, error: 'Promotion not found' },
         { status: 404 }
@@ -73,7 +68,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: updated
     })
   } catch (error) {
     console.error('Error updating promotion:', error)
@@ -93,16 +88,13 @@ export async function DELETE(
     const { id } = params
 
     // Check if promotion exists
-    const checkResult = await query('SELECT id FROM promotions WHERE id = $1', [id])
-    if (checkResult.rows.length === 0) {
+    const deleted = deletePromotionById(Number(id))
+    if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'Promotion not found' },
         { status: 404 }
       )
     }
-
-    // Delete promotion
-    await query('DELETE FROM promotions WHERE id = $1', [id])
 
     return NextResponse.json({
       success: true,

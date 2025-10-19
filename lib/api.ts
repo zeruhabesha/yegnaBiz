@@ -1,21 +1,12 @@
 // API service functions for admin operations
 
+import type { AdminCompany, AdminPromotion, AdminUser } from "@/lib/types/admin"
+
+export type { AdminCompany, AdminPromotion, AdminUser } from "@/lib/types/admin"
+
 const API_BASE_URL = '/api/admin'
 
-// Users API
-export interface User {
-  id: number
-  full_name: string
-  email: string
-  role: string
-  status: string
-  phone?: string
-  location?: string
-  created_at: string
-  updated_at: string
-}
-
-export async function getUsers(search?: string, status?: string, role?: string): Promise<User[]> {
+export async function getUsers(search?: string, status?: string, role?: string): Promise<AdminUser[]> {
   const params = new URLSearchParams()
   if (search) params.append('search', search)
   if (status && status !== 'all') params.append('status', status)
@@ -31,7 +22,7 @@ export async function getUsers(search?: string, status?: string, role?: string):
   return data.data
 }
 
-export async function getUser(id: number): Promise<User> {
+export async function getUser(id: number): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/users/${id}`)
   const data = await response.json()
 
@@ -42,7 +33,7 @@ export async function getUser(id: number): Promise<User> {
   return data.data
 }
 
-export async function createUser(userData: Partial<User>): Promise<User> {
+export async function createUser(userData: Partial<AdminUser>): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/users`, {
     method: 'POST',
     headers: {
@@ -59,7 +50,7 @@ export async function createUser(userData: Partial<User>): Promise<User> {
   return data.data
 }
 
-export async function updateUser(id: number, userData: Partial<User>): Promise<User> {
+export async function updateUser(id: number, userData: Partial<AdminUser>): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/users/${id}`, {
     method: 'PUT',
     headers: {
@@ -88,36 +79,7 @@ export async function deleteUser(id: number): Promise<void> {
 }
 
 // Companies API
-export interface Company {
-  id: number
-  name: string
-  slug: string
-  description?: string
-  category: string
-  subcategory?: string
-  email?: string
-  phone?: string
-  website?: string
-  address?: string
-  city: string
-  region: string
-  country: string
-  latitude?: number
-  longitude?: number
-  established_year?: number
-  employee_count?: string
-  is_verified: boolean
-  is_featured: boolean
-  is_premium: boolean
-  status: string
-  rating: number
-  review_count: number
-  view_count: number
-  created_at: string
-  updated_at: string
-}
-
-export async function getCompanies(search?: string, status?: string, category?: string): Promise<Company[]> {
+export async function getCompanies(search?: string, status?: string, category?: string): Promise<AdminCompany[]> {
   const params = new URLSearchParams()
   if (search) params.append('search', search)
   if (status && status !== 'all') params.append('status', status)
@@ -133,7 +95,7 @@ export async function getCompanies(search?: string, status?: string, category?: 
   return data.data
 }
 
-export async function getCompany(id: number): Promise<Company> {
+export async function getCompany(id: number): Promise<AdminCompany> {
   const response = await fetch(`${API_BASE_URL}/companies/${id}`)
   const data = await response.json()
 
@@ -144,7 +106,7 @@ export async function getCompany(id: number): Promise<Company> {
   return data.data
 }
 
-export async function createCompany(companyData: Partial<Company>): Promise<Company> {
+export async function createCompany(companyData: Partial<AdminCompany>): Promise<AdminCompany> {
   const response = await fetch(`${API_BASE_URL}/companies`, {
     method: 'POST',
     headers: {
@@ -161,7 +123,7 @@ export async function createCompany(companyData: Partial<Company>): Promise<Comp
   return data.data
 }
 
-export async function updateCompany(id: number, companyData: Partial<Company>): Promise<Company> {
+export async function updateCompany(id: number, companyData: Partial<AdminCompany>): Promise<AdminCompany> {
   const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
     method: 'PUT',
     headers: {
@@ -190,25 +152,7 @@ export async function deleteCompany(id: number): Promise<void> {
 }
 
 // Promotions API
-export interface Promotion {
-  id: number
-  title: string
-  description?: string
-  type: string
-  status: string
-  start_date: string
-  end_date: string
-  target_audience?: string
-  budget: number
-  spent: number
-  clicks: number
-  conversions: number
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
-
-export async function getPromotions(search?: string, status?: string, type?: string): Promise<Promotion[]> {
+export async function getPromotions(search?: string, status?: string, type?: string): Promise<AdminPromotion[]> {
   const params = new URLSearchParams()
   if (search) params.append('search', search)
   if (status && status !== 'all') params.append('status', status)
@@ -224,7 +168,7 @@ export async function getPromotions(search?: string, status?: string, type?: str
   return data.data
 }
 
-export async function getPromotion(id: number): Promise<Promotion> {
+export async function getPromotion(id: number): Promise<AdminPromotion> {
   const response = await fetch(`${API_BASE_URL}/promotions/${id}`)
   const data = await response.json()
 
@@ -235,7 +179,7 @@ export async function getPromotion(id: number): Promise<Promotion> {
   return data.data
 }
 
-export async function createPromotion(promotionData: Partial<Promotion>): Promise<Promotion> {
+export async function createPromotion(promotionData: Partial<AdminPromotion>): Promise<AdminPromotion> {
   const response = await fetch(`${API_BASE_URL}/promotions`, {
     method: 'POST',
     headers: {
@@ -252,7 +196,7 @@ export async function createPromotion(promotionData: Partial<Promotion>): Promis
   return data.data
 }
 
-export async function updatePromotion(id: number, promotionData: Partial<Promotion>): Promise<Promotion> {
+export async function updatePromotion(id: number, promotionData: Partial<AdminPromotion>): Promise<AdminPromotion> {
   const response = await fetch(`${API_BASE_URL}/promotions/${id}`, {
     method: 'PUT',
     headers: {

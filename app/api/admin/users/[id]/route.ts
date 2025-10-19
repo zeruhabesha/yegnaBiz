@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { deleteUserById, getUserById, updateUserById } from '@/lib/mock-data'
 
 // GET /api/admin/users/[id] - Get single user
 export async function GET(
@@ -9,13 +9,9 @@ export async function GET(
   try {
     const { id } = params
 
-    const result = await query(
-      `SELECT id, full_name, email, role, status, phone, location, created_at, updated_at
-       FROM users WHERE id = $1`,
-      [id]
-    )
+    const user = getUserById(Number(id))
 
-    if (result.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
@@ -24,7 +20,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: user
     })
   } catch (error) {
     console.error('Error fetching user:', error)
@@ -45,15 +41,9 @@ export async function PUT(
     const body = await request.json()
     const { full_name, email, role, status, phone, location } = body
 
-    const result = await query(
-      `UPDATE users
-       SET full_name = $1, email = $2, role = $3, status = $4, phone = $5, location = $6, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $7
-       RETURNING id, full_name, email, role, status, phone, location, created_at, updated_at`,
-      [full_name, email, role, status, phone, location, id]
-    )
+    const updated = updateUserById(Number(id), { full_name, email, role, status, phone, location })
 
-    if (result.rows.length === 0) {
+    if (!updated) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
@@ -62,7 +52,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: updated
     })
   } catch (error) {
     console.error('Error updating user:', error)
@@ -82,16 +72,13 @@ export async function DELETE(
     const { id } = params
 
     // Check if user exists
-    const checkResult = await query('SELECT id FROM users WHERE id = $1', [id])
-    if (checkResult.rows.length === 0) {
+    const deleted = deleteUserById(Number(id))
+    if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
       )
     }
-
-    // Delete user
-    await query('DELETE FROM users WHERE id = $1', [id])
 
     return NextResponse.json({
       success: true,
