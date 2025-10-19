@@ -180,7 +180,7 @@ export default function AdminPromoPage() {
             <div className="text-3xl font-bold">
               ₿{promotions.reduce((sum, p) => sum + p.spent, 0).toLocaleString()}
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
       </div>
 

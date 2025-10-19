@@ -63,7 +63,9 @@ export default function AddBusinessPage() {
 
   // Redirect if not logged in
   if (!user) {
-    router.push("/login")
+    if (typeof window !== "undefined") {
+      router.push("/login")
+    }
     return null
   }
 
@@ -100,11 +102,15 @@ export default function AddBusinessPage() {
         ownerId: user.id,
       })
 
-      alert("Business listing submitted successfully! It will be reviewed by our team.")
-      router.push("/dashboard")
+      if (typeof window !== "undefined") {
+        window.alert("Business listing submitted successfully! It will be reviewed by our team.")
+        router.push("/dashboard")
+      }
     } catch (error) {
       console.error("Error submitting business:", error)
-      alert("Failed to submit business listing. Please try again.")
+      if (typeof window !== "undefined") {
+        window.alert("Failed to submit business listing. Please try again.")
+      }
     } finally {
       setIsSubmitting(false)
     }
