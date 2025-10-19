@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { deleteCompanyById, getCompanyById, updateCompanyById } from '@/lib/mock-data'
 
 // GET /api/admin/companies/[id] - Get single company
 export async function GET(
@@ -9,18 +9,9 @@ export async function GET(
   try {
     const { id } = params
 
-    const result = await query(`
-      SELECT
-        id, name, slug, description, category, subcategory, city, region, country,
-        email, phone, website, address, latitude, longitude,
-        is_verified, is_featured, is_premium, status,
-        rating, review_count, view_count, established_year, employee_count,
-        created_at, updated_at
-      FROM companies WHERE id = $1`,
-      [id]
-    )
+    const company = getCompanyById(Number(id))
 
-    if (result.rows.length === 0) {
+    if (!company) {
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
@@ -29,7 +20,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: company
     })
   } catch (error) {
     console.error('Error fetching company:', error)
@@ -54,23 +45,30 @@ export async function PUT(
       established_year, employee_count, is_verified, is_featured, is_premium, status
     } = body
 
-    const result = await query(
-      `UPDATE companies SET
-        name = $1, slug = $2, description = $3, category = $4, subcategory = $5,
-        email = $6, phone = $7, website = $8, address = $9, city = $10,
-        region = $11, country = $12, latitude = $13, longitude = $14,
-        established_year = $15, employee_count = $16, is_verified = $17,
-        is_featured = $18, is_premium = $19, status = $20, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $21
-       RETURNING *`,
-      [
-        name, slug, description, category, subcategory, email, phone, website,
-        address, city, region, country, latitude, longitude,
-        established_year, employee_count, is_verified, is_featured, is_premium, status, id
-      ]
-    )
+    const updated = updateCompanyById(Number(id), {
+      name,
+      slug,
+      description,
+      category,
+      subcategory,
+      email,
+      phone,
+      website,
+      address,
+      city,
+      region,
+      country,
+      latitude,
+      longitude,
+      established_year,
+      employee_count,
+      is_verified,
+      is_featured,
+      is_premium,
+      status,
+    })
 
-    if (result.rows.length === 0) {
+    if (!updated) {
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
@@ -79,7 +77,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: updated
     })
   } catch (error) {
     console.error('Error updating company:', error)
@@ -99,16 +97,13 @@ export async function DELETE(
     const { id } = params
 
     // Check if company exists
-    const checkResult = await query('SELECT id FROM companies WHERE id = $1', [id])
-    if (checkResult.rows.length === 0) {
+    const deleted = deleteCompanyById(Number(id))
+    if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
       )
     }
-
-    // Delete company (CASCADE will handle related records)
-    await query('DELETE FROM companies WHERE id = $1', [id])
 
     return NextResponse.json({
       success: true,

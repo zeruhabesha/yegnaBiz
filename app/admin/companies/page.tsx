@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Filter, MoreVertical, Plus, Edit, Trash2, Shield, CheckCircle, XCircle, Building2, X } from "@/components/icons"
+import { useEffect, useState } from "react"
+import { Search, MoreVertical, Edit, Trash2, Shield, CheckCircle, XCircle, Building2 } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -16,16 +16,16 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { getCompanies, updateCompany, deleteCompany, type Company } from "@/lib/api"
+import { getCompanies, updateCompany, deleteCompany, type AdminCompany } from "@/lib/api"
 
 export default function AdminCompaniesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [editingCompany, setEditingCompany] = useState<Company | null>(null)
-  const [actionCompany, setActionCompany] = useState<Company | null>(null)
+  const [editingCompany, setEditingCompany] = useState<AdminCompany | null>(null)
+  const [actionCompany, setActionCompany] = useState<AdminCompany | null>(null)
   const [actionType, setActionType] = useState<"verify" | "unverify" | "suspend" | "activate" | "delete" | null>(null)
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [companies, setCompanies] = useState<AdminCompany[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -50,7 +50,7 @@ export default function AdminCompaniesPage() {
 
   const filteredCompanies = companies
 
-  const handleEditCompany = (company: Company) => {
+  const handleEditCompany = (company: AdminCompany) => {
     setEditingCompany(company)
   }
 
@@ -67,7 +67,7 @@ export default function AdminCompaniesPage() {
     }
   }
 
-  const handleCompanyAction = (action: "verify" | "unverify" | "suspend" | "activate" | "delete", company: Company) => {
+  const handleCompanyAction = (action: "verify" | "unverify" | "suspend" | "activate" | "delete", company: AdminCompany) => {
     setActionCompany(company)
     setActionType(action)
   }
@@ -79,7 +79,7 @@ export default function AdminCompaniesPage() {
       if (actionType === "delete") {
         await deleteCompany(actionCompany.id)
       } else {
-        let updateData: Partial<Company> = {}
+        let updateData: Partial<AdminCompany> = {}
 
         switch (actionType) {
           case "verify":
@@ -156,10 +156,10 @@ export default function AdminCompaniesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Companies</CardTitle>
-          </CardHeader>
-          <CardContent>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Companies</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="text-3xl font-bold">{companies.length}</div>
           </CardContent>
         </Card>
@@ -190,11 +190,11 @@ export default function AdminCompaniesPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Suspended</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {companies.filter(c => c.status === "suspended").length}
-            </div>
-          </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {companies.filter(c => c.status === "suspended").length}
+              </div>
+            </CardContent>
         </Card>
       </div>
 

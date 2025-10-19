@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Filter, MoreVertical, Plus, Edit, Trash2, Eye, Calendar, TrendingUp } from "@/components/icons"
+import { Search, MoreVertical, Plus, Edit, Trash2, Eye, Calendar, TrendingUp } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,15 +17,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { getPromotions, updatePromotion, deletePromotion, type Promotion } from "@/lib/api"
+import { getPromotions, updatePromotion, deletePromotion, type AdminPromotion } from "@/lib/api"
 
 export default function AdminPromoPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [editingPromo, setEditingPromo] = useState<Promotion | null>(null)
-  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [editingPromo, setEditingPromo] = useState<AdminPromotion | null>(null)
+  const [promotions, setPromotions] = useState<AdminPromotion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,7 +54,7 @@ export default function AdminPromoPage() {
     setIsCreateDialogOpen(true)
   }
 
-  const handleEditPromo = (promo: Promotion) => {
+  const handleEditPromo = (promo: AdminPromotion) => {
     setEditingPromo(promo)
   }
 
@@ -140,10 +140,10 @@ export default function AdminPromoPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Campaigns</CardTitle>
-          </CardHeader>
-          <CardContent>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Campaigns</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="text-3xl font-bold">
               {promotions.filter((p) => p.status === "active" && p.is_active).length}
             </div>
@@ -176,11 +176,11 @@ export default function AdminPromoPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Spent</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              ₿{promotions.reduce((sum, p) => sum + p.spent, 0).toLocaleString()}
-            </div>
-          </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                ₿{promotions.reduce((sum, p) => sum + p.spent, 0).toLocaleString()}
+              </div>
+            </CardContent>
         </Card>
       </div>
 

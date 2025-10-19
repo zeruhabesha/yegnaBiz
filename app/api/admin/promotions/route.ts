@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { createPromotionRecord, listPromotions } from '@/lib/mock-data'
 
 // GET /api/admin/promotions - Get all promotions with filtering
 export async function GET(request: NextRequest) {
@@ -9,40 +9,15 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'all'
     const type = searchParams.get('type') || 'all'
 
-    let whereClause = ''
-    const params: any[] = []
-    let paramIndex = 1
-
-    if (search) {
-      whereClause += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`
-      params.push(`%${search}%`)
-      paramIndex++
-    }
-
-    if (status !== 'all') {
-      whereClause += ` AND status = $${paramIndex}`
-      params.push(status)
-      paramIndex++
-    }
-
-    if (type !== 'all') {
-      whereClause += ` AND type = $${paramIndex}`
-      params.push(type)
-    }
-
-    const result = await query(`
-      SELECT
-        id, title, description, type, status, start_date, end_date,
-        target_audience, budget, spent, clicks, conversions,
-        is_active, created_at, updated_at
-      FROM promotions
-      WHERE 1=1 ${whereClause}
-      ORDER BY created_at DESC
-    `, params)
+    const promotions = listPromotions({
+      search,
+      status,
+      type,
+    })
 
     return NextResponse.json({
       success: true,
-      data: result.rows
+      data: promotions
     })
   } catch (error) {
     console.error('Error fetching promotions:', error)
@@ -69,22 +44,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await query(
-      `INSERT INTO promotions (
-        title, description, type, status, start_date, end_date,
-        target_audience, budget, spent, clicks, conversions, is_active
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-      ) RETURNING *`,
-      [
-        title, description, type, status || 'active', start_date, end_date,
-        target_audience, budget || 0, spent || 0, clicks || 0, conversions || 0, is_active !== false
-      ]
-    )
+    const created = createPromotionRecord({
+      title,
+      description,
+      type,
+      status,
+      start_date,
+      end_date,
+      target_audience,
+      budget,
+      spent,
+      clicks,
+      conversions,
+      is_active,
+    })
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: created
     })
   } catch (error) {
     console.error('Error creating promotion:', error)

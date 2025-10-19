@@ -17,16 +17,16 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { getUsers, updateUser, deleteUser, type User } from "@/lib/api"
+import { getUsers, updateUser, deleteUser, type AdminUser } from "@/lib/api"
 
 export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [roleFilter, setRoleFilter] = useState("all")
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [actionUser, setActionUser] = useState<User | null>(null)
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
+  const [actionUser, setActionUser] = useState<AdminUser | null>(null)
   const [actionType, setActionType] = useState<"suspend" | "activate" | "delete" | null>(null)
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -51,7 +51,7 @@ export default function AdminUsersPage() {
 
   const filteredUsers = users
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: AdminUser) => {
     setEditingUser(user)
   }
 
@@ -68,7 +68,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  const handleUserAction = (action: "suspend" | "activate" | "delete", user: User) => {
+  const handleUserAction = (action: "suspend" | "activate" | "delete", user: AdminUser) => {
     setActionUser(user)
     setActionType(action)
   }
