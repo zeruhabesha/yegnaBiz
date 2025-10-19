@@ -46,18 +46,18 @@ export default function AdminPromoPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }; 
 
-  const filteredPromotions = promotions
+  const filteredPromotions = promotions; // <-- added semicolon
 
   const handleCreatePromo = () => {
     setIsCreateDialogOpen(true)
-  }
-
+  }; // <-- added semicolon
+// ...existing code...
   const handleEditPromo = (promo: AdminPromotion) => {
     setEditingPromo(promo)
-  }
-
+  }; // <-- added semicolon
+// ...existing code...
   const handleDeletePromo = async (promoId: number) => {
     if (confirm("Are you sure you want to delete this promotion?")) {
       try {
@@ -68,8 +68,8 @@ export default function AdminPromoPage() {
         console.error('Error deleting promotion:', err)
       }
     }
-  }
-
+  }; // <-- added semicolon
+// ...existing code...
   const handleToggleVisibility = async (promoId: number) => {
     try {
       const promo = promotions.find(p => p.id === promoId)
@@ -81,7 +81,7 @@ export default function AdminPromoPage() {
       setError(err instanceof Error ? err.message : 'Failed to toggle visibility')
       console.error('Error toggling visibility:', err)
     }
-  }
+  }; // <-- added semicolon
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
