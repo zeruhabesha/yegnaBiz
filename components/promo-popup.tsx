@@ -3,91 +3,26 @@
 import { useState, useEffect } from "react"
 import { X, Star, TrendingUp, Eye, CheckCircle } from "@/components/icons"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Link from "next/link"
+import type { PublicPromotion } from "@/lib/types/promotions"
 
 interface PromoPopupProps {
   isOpen: boolean
   onClose: () => void
-  promoId: string
+  promotion: PublicPromotion | null
 }
 
-const promoContent = {
-  "1": {
-    title: "🎉 Limited Time Offer - 50% OFF Premium Listing!",
-    subtitle: "Boost Your Business Visibility Today",
-    features: [
-      "Featured placement on homepage",
-      "Top position in category searches",
-      "Priority in search results",
-      "Premium badge on your listing",
-      "Unlimited photos & videos",
-      "Advanced analytics dashboard",
-      "Priority customer support",
-    ],
-    price: {
-      original: "5,000 ETB/month",
-      discounted: "2,500 ETB/month",
-    },
-    cta: "Claim Your 50% Discount",
-    ctaLink: "/promote",
-    badge: "Limited Time",
-    image: "/hero-promote.jpg",
-  },
-  "2": {
-    title: "🚀 Launch Your Business on YegnaBiz",
-    subtitle: "Join Ethiopia's Leading Business Directory",
-    features: [
-      "Free business listing",
-      "Reach 50,000+ monthly visitors",
-      "Customer reviews & ratings",
-      "Direct contact information",
-      "Mobile-optimized profile",
-      "Social media integration",
-      "Email notifications",
-    ],
-    price: {
-      original: "FREE",
-      discounted: "Start Today",
-    },
-    cta: "Create Free Listing",
-    ctaLink: "/register",
-    badge: "100% Free",
-    image: "/hero-home.jpg",
-  },
-  "3": {
-    title: "⭐ Featured Business Placement",
-    subtitle: "Get Maximum Exposure & 10X More Customers",
-    features: [
-      "Homepage featured spot",
-      "Category page highlights",
-      "Premium badge & verification",
-      "Top of search results",
-      "Enhanced profile with videos",
-      "Detailed analytics & insights",
-      "Promotional campaign support",
-    ],
-    price: {
-      original: "5,000 ETB/month",
-      discounted: "Limited Slots",
-    },
-    cta: "Get Featured Now",
-    ctaLink: "/promote",
-    badge: "Best Value",
-    image: "/hero-promote.jpg",
-  },
-}
-
-export function PromoPopup({ isOpen, onClose, promoId }: PromoPopupProps) {
+export function PromoPopup({ isOpen, onClose, promotion }: PromoPopupProps) {
   const [showCloseButton, setShowCloseButton] = useState(false)
   const [countdown, setCountdown] = useState(5)
-  const content = promoContent[promoId as keyof typeof promoContent] || promoContent["1"]
+  const content = promotion?.popup
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && content) {
       setShowCloseButton(false)
       setCountdown(5)
-      
+
       // Countdown timer
       const countdownInterval = setInterval(() => {
         setCountdown((prev) => {
@@ -109,11 +44,15 @@ export function PromoPopup({ isOpen, onClose, promoId }: PromoPopupProps) {
         clearInterval(countdownInterval)
       }
     }
-  }, [isOpen])
+  }, [isOpen, content?.badge, content?.cta])
+
+  if (!promotion || !content) {
+    return null
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={showCloseButton ? onClose : undefined}>
-      <DialogContent 
+      <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 [&>button]:hidden"
         onInteractOutside={(e) => {
           if (!showCloseButton) {
@@ -145,7 +84,7 @@ export function PromoPopup({ isOpen, onClose, promoId }: PromoPopupProps) {
         <div className="relative h-48 overflow-hidden rounded-t-lg">
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url('${content.image}')` }}
+            style={{ backgroundImage: `url('${content.image || promotion.image || ""}')` }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-black/70"></div>
           </div>
@@ -154,7 +93,7 @@ export function PromoPopup({ isOpen, onClose, promoId }: PromoPopupProps) {
               <div className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold mb-3">
                 {content.badge}
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">{content.title}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">{promotion.title}</h2>
               <p className="text-sm md:text-base opacity-90">{content.subtitle}</p>
             </div>
           </div>
@@ -189,20 +128,16 @@ export function PromoPopup({ isOpen, onClose, promoId }: PromoPopupProps) {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 py-4 border-t border-b">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">50K+</div>
-              <div className="text-xs text-muted-foreground">Monthly Visitors</div>
+          {content.stats && content.stats.length > 0 && (
+            <div className="grid grid-cols-3 gap-4 py-4 border-t border-b">
+              {content.stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">2,500+</div>
-              <div className="text-xs text-muted-foreground">Active Businesses</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">95%</div>
-              <div className="text-xs text-muted-foreground">Satisfaction Rate</div>
-            </div>
-          </div>
+          )}
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">

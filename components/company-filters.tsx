@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { categories, mockCompanies } from "@/lib/mock-data"
 
 export interface CompanyFiltersProps {
   selectedCategories: string[]
@@ -15,15 +14,9 @@ export interface CompanyFiltersProps {
   onVerifiedChange: (checked: boolean) => void
   showFeaturedOnly: boolean
   onFeaturedChange: (checked: boolean) => void
+  availableCategories: string[]
+  availableCities: string[]
 }
-
-const availableCities = Array.from(
-  new Set(
-    mockCompanies
-      .map((company) => company.city)
-      .filter((city): city is string => Boolean(city)),
-  ),
-).sort()
 
 export function CompanyFilters({
   selectedCategories,
@@ -36,6 +29,8 @@ export function CompanyFilters({
   onVerifiedChange,
   showFeaturedOnly,
   onFeaturedChange,
+  availableCategories,
+  availableCities,
 }: CompanyFiltersProps) {
   const toggleValue = (values: string[], value: string, onChange: (next: string[]) => void) => {
     if (values.includes(value)) {
@@ -54,7 +49,7 @@ export function CompanyFilters({
         <div className="space-y-3">
           <Label className="font-medium">Categories</Label>
           <div className="space-y-2">
-            {categories.map((category) => (
+            {availableCategories.map((category) => (
               <label key={category} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

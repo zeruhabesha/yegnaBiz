@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deleteUserById, getUserById, updateUserById } from '@/lib/mock-data'
+import { deleteAdminUser, getAdminUserById, updateAdminUser } from '@/lib/data/users'
 
 // GET /api/admin/users/[id] - Get single user
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = params
 
-    const user = getUserById(Number(id))
+    const user = await getAdminUserById(Number(id))
 
     if (!user) {
       return NextResponse.json(
@@ -41,7 +41,7 @@ export async function PUT(
     const body = await request.json()
     const { full_name, email, role, status, phone, location } = body
 
-    const updated = updateUserById(Number(id), { full_name, email, role, status, phone, location })
+    const updated = await updateAdminUser(Number(id), { full_name, email, role, status, phone, location })
 
     if (!updated) {
       return NextResponse.json(
@@ -72,7 +72,7 @@ export async function DELETE(
     const { id } = params
 
     // Check if user exists
-    const deleted = deleteUserById(Number(id))
+    const deleted = await deleteAdminUser(Number(id))
     if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'User not found' },

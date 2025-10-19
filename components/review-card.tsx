@@ -2,7 +2,7 @@ import { Star, ThumbsUp } from "@/components/icons"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { Review } from "@/lib/mock-data"
+import type { Review } from "@/lib/types/company"
 
 interface ReviewCardProps {
   review: Review

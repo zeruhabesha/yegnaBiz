@@ -3,13 +3,31 @@ import { Footer } from "@/components/footer"
 import { SearchHero } from "@/components/search-hero"
 import { CategoryGrid } from "@/components/category-grid"
 import { CompanyCard } from "@/components/company-card"
-import { mockCompanies } from "@/lib/mock-data"
+import { getFeaturedCompanies, getCompanyStats } from "@/lib/data/companies"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight, Award, Users, Building2 } from "@/components/icons"
 
-export default function HomePage() {
-  const featuredCompanies = mockCompanies.filter((c) => c.isFeatured).slice(0, 6)
+export default async function HomePage() {
+  const [featuredCompanies, stats] = await Promise.all([getFeaturedCompanies(6), getCompanyStats()])
+
+  const highlightItems = [
+    {
+      icon: Building2,
+      title: `${stats.total.toLocaleString()} Businesses`,
+      description: "Comprehensive directory of Ethiopian companies",
+    },
+    {
+      icon: Award,
+      title: `${stats.verified.toLocaleString()} Verified Listings`,
+      description: "All businesses verified for authenticity",
+    },
+    {
+      icon: Users,
+      title: `${stats.totalReviews.toLocaleString()} Reviews`,
+      description: "Real customer reviews and ratings",
+    },
+  ]
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -21,27 +39,15 @@ export default function HomePage() {
         <section className="py-16">
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              <div className="text-center space-y-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <Building2 className="h-6 w-6 text-primary" />
+              {highlightItems.map(({ icon: Icon, title, description }) => (
+                <div key={title} className="text-center space-y-3">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-xl">{title}</h3>
+                  <p className="text-muted-foreground">{description}</p>
                 </div>
-                <h3 className="font-semibold text-xl">2,500+ Businesses</h3>
-                <p className="text-muted-foreground">Comprehensive directory of Ethiopian companies</p>
-              </div>
-              <div className="text-center space-y-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <Award className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-xl">Verified Listings</h3>
-                <p className="text-muted-foreground">All businesses verified for authenticity</p>
-              </div>
-              <div className="text-center space-y-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-xl">Trusted Reviews</h3>
-                <p className="text-muted-foreground">Real customer reviews and ratings</p>
-              </div>
+              ))}
             </div>
 
             <div className="flex items-center justify-between mb-8">
