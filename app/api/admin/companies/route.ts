@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createCompanyRecord, listCompanies } from '@/lib/mock-data'
+import { createAdminCompany, listAdminCompanies } from '@/lib/data/companies'
 
 // GET /api/admin/companies - Get all companies with filtering
 export async function GET(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'all'
     const category = searchParams.get('category') || 'all'
 
-    const companies = listCompanies({
+    const companies = await listAdminCompanies({
       search,
       status,
       category,
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const created = createCompanyRecord({
+    const created = await createAdminCompany({
       name,
       slug,
       description,
