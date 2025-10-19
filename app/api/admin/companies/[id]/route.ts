@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deleteCompanyById, getCompanyById, updateCompanyById } from '@/lib/mock-data'
+import { deleteAdminCompany, getAdminCompanyById, updateAdminCompany } from '@/lib/data/companies'
 
 // GET /api/admin/companies/[id] - Get single company
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = params
 
-    const company = getCompanyById(Number(id))
+    const company = await getAdminCompanyById(Number(id))
 
     if (!company) {
       return NextResponse.json(
@@ -45,7 +45,7 @@ export async function PUT(
       established_year, employee_count, is_verified, is_featured, is_premium, status
     } = body
 
-    const updated = updateCompanyById(Number(id), {
+    const updated = await updateAdminCompany(Number(id), {
       name,
       slug,
       description,
@@ -97,7 +97,7 @@ export async function DELETE(
     const { id } = params
 
     // Check if company exists
-    const deleted = deleteCompanyById(Number(id))
+    const deleted = await deleteAdminCompany(Number(id))
     if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'Company not found' },

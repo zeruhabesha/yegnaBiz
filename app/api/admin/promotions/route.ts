@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPromotionRecord, listPromotions } from '@/lib/mock-data'
+import { createAdminPromotion, listAdminPromotions } from '@/lib/data/promotions'
 
 // GET /api/admin/promotions - Get all promotions with filtering
 export async function GET(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'all'
     const type = searchParams.get('type') || 'all'
 
-    const promotions = listPromotions({
+    const promotions = await listAdminPromotions({
       search,
       status,
       type,
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const created = createPromotionRecord({
+    const created = await createAdminPromotion({
       title,
       description,
       type,

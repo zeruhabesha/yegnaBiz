@@ -26,7 +26,12 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ReviewCard } from "@/components/review-card"
 import { WriteReviewDialog } from "@/components/write-review-dialog"
-import { mockCompanies, mockReviews, mockSocialLinks, mockBusinessHours } from "@/lib/mock-data"
+import {
+  getBusinessHoursForCompany,
+  getCompanyBySlug,
+  getReviewsForCompany,
+  getSocialLinksForCompany,
+} from "@/lib/data/companies"
 
 const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -37,24 +42,28 @@ const socialIcons: Record<string, any> = {
   instagram: Instagram,
 }
 
-export default function CompanyProfilePage({ params }: { params: { slug: string } }) {
-  const company = mockCompanies.find((c) => c.slug === params.slug)
+export default async function CompanyProfilePage({ params }: { params: { slug: string } }) {
+  const company = await getCompanyBySlug(params.slug)
 
   if (!company) {
     notFound()
   }
 
-  const reviews = mockReviews.filter((r) => r.companyId === company.id)
-  const socialLinks = mockSocialLinks[company.id] || []
-  const businessHours = mockBusinessHours[company.id] || []
+  const [reviews, socialLinks, businessHours] = await Promise.all([
+    getReviewsForCompany(company.id),
+    getSocialLinksForCompany(company.id),
+    getBusinessHoursForCompany(company.id),
+  ])
 
-  const ratingDistribution = [
-    { stars: 5, count: Math.floor(company.reviewCount * 0.6) },
-    { stars: 4, count: Math.floor(company.reviewCount * 0.25) },
-    { stars: 3, count: Math.floor(company.reviewCount * 0.1) },
-    { stars: 2, count: Math.floor(company.reviewCount * 0.03) },
-    { stars: 1, count: Math.floor(company.reviewCount * 0.02) },
-  ]
+  const reviewCount = reviews.length
+  const averageRating =
+    reviewCount > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount : company.rating
+
+  const ratingDistribution = Array.from({ length: 5 }, (_, index) => {
+    const stars = 5 - index
+    const count = reviews.filter((review) => review.rating === stars).length
+    return { stars, count }
+  })
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -82,12 +91,12 @@ export default function CompanyProfilePage({ params }: { params: { slug: string 
                 </div>
 
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      <span className="font-bold text-lg">{company.rating.toFixed(1)}</span>
-                    </div>
-                    <span className="text-muted-foreground">({company.reviewCount} reviews)</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <span className="font-bold text-lg">{averageRating.toFixed(1)}</span>
+                  </div>
+                  <span className="text-muted-foreground">({reviewCount} reviews)</span>
                   </div>
                   <Separator orientation="vertical" className="h-6" />
                   <span className="text-muted-foreground">{company.viewCount.toLocaleString()} views</span>
@@ -118,7 +127,7 @@ export default function CompanyProfilePage({ params }: { params: { slug: string 
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="w-full justify-start">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="reviews">Reviews ({company.reviewCount})</TabsTrigger>
+                  <TabsTrigger value="reviews">Reviews ({reviewCount})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6 mt-6">
@@ -188,20 +197,20 @@ export default function CompanyProfilePage({ params }: { params: { slug: string 
                     <CardContent>
                       <div className="flex flex-col md:flex-row gap-8">
                         <div className="text-center md:text-left">
-                          <div className="text-5xl font-bold mb-2">{company.rating.toFixed(1)}</div>
+                          <div className="text-5xl font-bold mb-2">{averageRating.toFixed(1)}</div>
                           <div className="flex items-center gap-1 justify-center md:justify-start mb-2">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star
                                 key={i}
                                 className={`h-5 w-5 ${
-                                  i < Math.round(company.rating)
+                                  i < Math.round(averageRating)
                                     ? "fill-yellow-400 text-yellow-400"
                                     : "text-muted-foreground"
                                 }`}
                               />
                             ))}
                           </div>
-                          <p className="text-sm text-muted-foreground">{company.reviewCount} reviews</p>
+                          <p className="text-sm text-muted-foreground">{reviewCount} reviews</p>
                         </div>
 
                         <div className="flex-1 space-y-2">
@@ -211,7 +220,7 @@ export default function CompanyProfilePage({ params }: { params: { slug: string 
                               <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-yellow-400"
-                                  style={{ width: `${(dist.count / company.reviewCount) * 100}%` }}
+                                  style={{ width: `${reviewCount === 0 ? 0 : (dist.count / reviewCount) * 100}%` }}
                                 />
                               </div>
                               <span className="text-sm text-muted-foreground w-12 text-right">{dist.count}</span>

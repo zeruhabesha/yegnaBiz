@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "companyId": 1,
+    "userName": "Marta Abebe",
+    "title": "Exceptional delivery",
+    "comment": "Their engineering team delivered our digital platform ahead of schedule with outstanding quality.",
+    "rating": 5,
+    "createdAt": "2024-07-12T09:30:00.000Z",
+    "isVerified": true
+  },
+  {
+    "id": 2,
+    "companyId": 1,
+    "userName": "Henok Getnet",
+    "title": "Reliable support",
+    "comment": "Great communication and reliable after-care support throughout the project.",
+    "rating": 4,
+    "createdAt": "2024-06-04T11:20:00.000Z",
+    "isVerified": true
+  },
+  {
+    "id": 3,
+    "companyId": 2,
+    "userName": "Lensa Mengistu",
+    "title": "Trusted logistics partner",
+    "comment": "We depend on Nile Logistics for refrigerated distribution and they consistently deliver on time.",
+    "rating": 5,
+    "createdAt": "2024-05-18T08:15:00.000Z",
+    "isVerified": false
+  },
+  {
+    "id": 4,
+    "companyId": 3,
+    "userName": "Samuel Teshome",
+    "title": "Quality food products",
+    "comment": "Our hotel chain sources packaged meals from Awash Foods and the quality has been excellent.",
+    "rating": 4,
+    "createdAt": "2024-04-27T15:45:00.000Z",
+    "isVerified": true
+  }
+]

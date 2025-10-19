@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "full_name": "Sara Bekele",
+    "email": "sara.bekele@yegnabiz.com",
+    "role": "admin",
+    "status": "active",
+    "phone": "+251 911 111 111",
+    "location": "Addis Ababa, Ethiopia",
+    "created_at": "2024-01-10T08:00:00.000Z",
+    "updated_at": "2024-01-10T08:00:00.000Z",
+    "password_hash": "salt1:abc123"
+  },
+  {
+    "id": 2,
+    "full_name": "Lulit Worku",
+    "email": "lulit.worku@yegnabiz.com",
+    "role": "moderator",
+    "status": "active",
+    "phone": "+251 922 222 222",
+    "location": "Adama, Ethiopia",
+    "created_at": "2024-01-10T08:00:00.000Z",
+    "updated_at": "2024-01-10T08:00:00.000Z",
+    "password_hash": "salt2:def456"
+  },
+  {
+    "id": 3,
+    "full_name": "Yonatan Alemu",
+    "email": "yonatan.alemu@yegnabiz.com",
+    "role": "user",
+    "status": "suspended",
+    "phone": "+251 933 333 333",
+    "location": "Bahir Dar, Ethiopia",
+    "created_at": "2024-01-10T08:00:00.000Z",
+    "updated_at": "2024-01-10T08:00:00.000Z",
+    "password_hash": "salt3:ghi789"
+  }
+]

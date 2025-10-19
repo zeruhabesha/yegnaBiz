@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { CompanyCard } from "@/components/company-card"
 import { CompanyFilters } from "@/components/company-filters"
-import { mockCompanies } from "@/lib/mock-data"
+import type { Company } from "@/lib/types/company"
 import { Input } from "@/components/ui/input"
 import { Search } from "@/components/icons"
 import { Button } from "@/components/ui/button"
@@ -36,81 +36,62 @@ export default function CompaniesPage() {
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false)
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
+  const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [totalCompanies, setTotalCompanies] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredCompanies = useMemo(() => {
-    let filtered = [...mockCompanies]
+  useEffect(() => {
+    const controller = new AbortController()
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (company) =>
-          company.name.toLowerCase().includes(query) ||
-          company.description.toLowerCase().includes(query) ||
-          company.category.toLowerCase().includes(query) ||
-          company.subcategory?.toLowerCase().includes(query),
-      )
+    async function fetchCompanies() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const params = new URLSearchParams()
+        if (searchQuery) params.set("search", searchQuery)
+        if (locationQuery) params.set("location", locationQuery)
+        if (selectedCategories.length > 0) params.set("categories", selectedCategories.join(","))
+        if (selectedCities.length > 0) params.set("cities", selectedCities.join(","))
+        if (showVerifiedOnly) params.set("verified", "true")
+        if (showFeaturedOnly) params.set("featured", "true")
+        if (sortBy && sortBy !== "relevance") params.set("sort", sortBy)
+
+        const response = await fetch(`/api/companies?${params.toString()}`, { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error("Failed to load companies")
+        }
+
+        const json = await response.json()
+        if (!json.success) {
+          throw new Error(json.error || "Failed to load companies")
+        }
+
+        setCompanies(json.data.companies)
+        setAvailableCategories(json.data.allCategories)
+        setAvailableCities(json.data.allCities)
+        setTotalCompanies(json.data.total)
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          setError(err instanceof Error ? err.message : "Failed to load companies")
+        }
+      } finally {
+        setLoading(false)
+      }
     }
 
-    // Location filter
-    if (locationQuery) {
-      const location = locationQuery.toLowerCase()
-      filtered = filtered.filter(
-        (company) =>
-          company.city?.toLowerCase().includes(location) ||
-          company.region?.toLowerCase().includes(location) ||
-          company.address?.toLowerCase().includes(location),
-      )
-    }
+    fetchCompanies()
 
-    // Category filter
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((company) => selectedCategories.includes(company.category))
-    }
+    return () => controller.abort()
+  }, [searchQuery, locationQuery, selectedCategories, selectedCities, showVerifiedOnly, showFeaturedOnly, sortBy])
 
-    // City filter
-    if (selectedCities.length > 0) {
-      filtered = filtered.filter((company) => (company.city ? selectedCities.includes(company.city) : false))
-    }
-
-    // Verified filter
-    if (showVerifiedOnly) {
-      filtered = filtered.filter((company) => company.isVerified)
-    }
-
-    // Featured filter
-    if (showFeaturedOnly) {
-      filtered = filtered.filter((company) => company.isFeatured)
-    }
-
-    // Sorting
-    switch (sortBy) {
-      case "rating":
-        filtered.sort((a, b) => b.rating - a.rating)
-        break
-      case "reviews":
-        filtered.sort((a, b) => b.reviewCount - a.reviewCount)
-        break
-      case "newest":
-        filtered.sort((a, b) => b.id - a.id)
-        break
-      default:
-        // Relevance - featured first, then by rating
-        filtered.sort((a, b) => {
-          if (a.isFeatured && !b.isFeatured) return -1
-          if (!a.isFeatured && b.isFeatured) return 1
-          return b.rating - a.rating
-        })
-    }
-
-    return filtered
-  }, [searchQuery, locationQuery, selectedCategories, selectedCities, sortBy, showVerifiedOnly, showFeaturedOnly])
-
-  // Reset to page 1 when filters change
-  const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(companies.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const endIndex = startIndex + ITEMS_PER_PAGE
-  const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex)
+  const paginatedCompanies = companies.slice(startIndex, endIndex)
 
   // Generate page numbers for pagination
   const getPageNumbers = () => {
@@ -148,6 +129,12 @@ export default function CompaniesPage() {
     setCurrentPage(1)
   }
 
+  useEffect(() => {
+    if (!loading && totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, loading, totalPages])
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -164,7 +151,7 @@ export default function CompaniesPage() {
         <div className="container py-12 md:py-16 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">Browse Companies</h1>
-            <p className="text-gray-200">Discover {mockCompanies.length}+ businesses across Ethiopia</p>
+            <p className="text-gray-200">Discover {totalCompanies}+ businesses across Ethiopia</p>
           </div>
         </div>
       </section>
@@ -225,18 +212,31 @@ export default function CompaniesPage() {
                   setShowFeaturedOnly(featured)
                   handleFilterChange()
                 }}
+                availableCategories={availableCategories}
+                availableCities={availableCities}
               />
             </aside>
 
             <div className="flex-1">
               <div className="mb-6 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing {startIndex + 1}-{Math.min(endIndex, filteredCompanies.length)} of {filteredCompanies.length}{" "}
-                  {filteredCompanies.length === 1 ? "company" : "companies"}
-                </p>
+                {error ? (
+                  <p className="text-sm text-destructive">{error}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {loading && companies.length === 0
+                      ? "Loading companies..."
+                      : `Showing ${companies.length === 0 ? 0 : startIndex + 1}-${Math.min(endIndex, companies.length)} of ${companies.length} ${companies.length === 1 ? "company" : "companies"}`}
+                  </p>
+                )}
               </div>
 
-              {filteredCompanies.length > 0 ? (
+              {loading && companies.length === 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {Array.from({ length: Math.min(ITEMS_PER_PAGE, 4) }).map((_, index) => (
+                    <div key={index} className="h-48 rounded-xl bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : companies.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {paginatedCompanies.map((company) => (
@@ -306,6 +306,7 @@ export default function CompaniesPage() {
                       setSelectedCities([])
                       setShowVerifiedOnly(false)
                       setShowFeaturedOnly(false)
+                      setSortBy("relevance")
                       setCurrentPage(1)
                     }}
                   >

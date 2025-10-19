@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Building2, Star, Eye, TrendingUp } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,35 +9,77 @@ import { useAuth } from "@/lib/auth-context"
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const [stats, setStats] = useState({
+    totalCompanies: 0,
+    totalViews: 0,
+    totalReviews: 0,
+    averageRating: 0,
+  })
+  const [activity, setActivity] = useState<Array<{ title: string; description: string; timestamp: string }>>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const stats = [
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function fetchOverview() {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch("/api/dashboard/overview", { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error("Failed to load dashboard data")
+        }
+        const json = await response.json()
+        if (!json.success) {
+          throw new Error(json.error || "Failed to load dashboard data")
+        }
+
+        setStats(json.data.stats)
+        setActivity(json.data.activity)
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          console.error(err)
+          setError(err instanceof Error ? err.message : "Failed to load dashboard data")
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOverview()
+
+    return () => controller.abort()
+  }, [])
+
+  const statCards = [
     {
       title: "My Companies",
-      value: "2",
+      value: stats.totalCompanies.toLocaleString(),
       description: "Active listings",
       icon: Building2,
       href: "/dashboard/companies",
     },
     {
       title: "Total Views",
-      value: "1,234",
-      description: "Last 30 days",
+      value: stats.totalViews.toLocaleString(),
+      description: "Across your listings",
       icon: Eye,
       href: "/dashboard/companies",
     },
     {
       title: "Reviews Received",
-      value: "45",
-      description: "Average 4.5 stars",
+      value: stats.totalReviews.toLocaleString(),
+      description: "Latest feedback",
       icon: Star,
       href: "/dashboard/reviews",
     },
     {
-      title: "Growth",
-      value: "+12%",
-      description: "vs last month",
+      title: "Average Rating",
+      value: stats.averageRating ? stats.averageRating.toFixed(1) : "0.0",
+      description: "Across your listings",
       icon: TrendingUp,
-      href: "/dashboard/companies",
+      href: "/dashboard/reviews",
     },
   ]
 
@@ -47,8 +90,14 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Here's an overview of your business listings</p>
       </div>
 
+      {error && (
+        <div className="rounded-md border border-destructive bg-destructive/10 px-4 py-3 text-destructive">
+          {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {stats.map((stat) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon
           return (
             <Link key={stat.title} href={stat.href}>
@@ -58,7 +107,9 @@ export default function DashboardPage() {
                   <Icon className="h-5 w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                  <div className="text-3xl font-bold mb-1">
+                    {loading ? <span className="h-8 w-24 rounded bg-muted animate-pulse block" /> : stat.value}
+                  </div>
                   <p className="text-sm text-muted-foreground">{stat.description}</p>
                 </CardContent>
               </Card>
@@ -92,38 +143,29 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Star className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium">New review received</p>
-                <p className="text-sm text-muted-foreground">Someone left a 5-star review on Yoha Construction</p>
-                <p className="text-xs text-muted-foreground mt-1">2 hours ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Eye className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium">Profile views increased</p>
-                <p className="text-sm text-muted-foreground">Your listings received 156 views this week</p>
-                <p className="text-xs text-muted-foreground mt-1">1 day ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium">Listing updated</p>
-                <p className="text-sm text-muted-foreground">You updated Sheba Leather's business hours</p>
-                <p className="text-xs text-muted-foreground mt-1">3 days ago</p>
-              </div>
-            </div>
+            {loading
+              ? Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                    <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-48 rounded bg-muted animate-pulse" />
+                      <div className="h-3 w-64 rounded bg-muted animate-pulse" />
+                      <div className="h-3 w-32 rounded bg-muted animate-pulse" />
+                    </div>
+                  </div>
+                ))
+              : activity.map((item) => (
+                  <div key={item.title + item.timestamp} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium">{item.title}</p>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{item.timestamp}</p>
+                    </div>
+                  </div>
+                ))}
           </div>
         </CardContent>
       </Card>

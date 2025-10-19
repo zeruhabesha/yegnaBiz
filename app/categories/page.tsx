@@ -17,6 +17,7 @@ import {
 } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { getCategoryCounts } from "@/lib/data/companies"
 
 const categoryIcons: Record<string, any> = {
   Technology: Laptop,
@@ -33,70 +34,23 @@ const categoryIcons: Record<string, any> = {
   Agriculture: Wheat,
 }
 
-const categories = [
-  {
-    name: "Technology",
-    count: 145,
-    description: "Software, telecommunications, IT services, and tech startups",
-  },
-  {
-    name: "Finance",
-    count: 234,
-    description: "Banks, insurance companies, investment firms, and financial services",
-  },
-  {
-    name: "Transportation",
-    count: 89,
-    description: "Airlines, logistics, shipping, and transportation services",
-  },
-  {
-    name: "Food & Beverage",
-    count: 312,
-    description: "Restaurants, breweries, food manufacturers, and catering services",
-  },
-  {
-    name: "Construction",
-    count: 178,
-    description: "Contractors, builders, civil engineering, and construction firms",
-  },
-  {
-    name: "Manufacturing",
-    count: 156,
-    description: "Factories, production facilities, and manufacturing companies",
-  },
-  {
-    name: "Hospitality",
-    count: 203,
-    description: "Hotels, resorts, lodges, and hospitality services",
-  },
-  {
-    name: "Healthcare",
-    count: 267,
-    description: "Hospitals, clinics, pharmacies, and medical services",
-  },
-  {
-    name: "Education",
-    count: 198,
-    description: "Schools, universities, training centers, and educational institutions",
-  },
-  {
-    name: "Retail",
-    count: 421,
-    description: "Shops, stores, supermarkets, and retail businesses",
-  },
-  {
-    name: "Real Estate",
-    count: 134,
-    description: "Property developers, real estate agencies, and property management",
-  },
-  {
-    name: "Agriculture",
-    count: 167,
-    description: "Farms, agricultural services, and agribusiness companies",
-  },
-]
+const categoryDescriptions: Record<string, string> = {
+  Technology: "Software, telecommunications, IT services, and tech startups",
+  Finance: "Banks, insurance companies, investment firms, and financial services",
+  Transportation: "Airlines, logistics, shipping, and transportation services",
+  "Food & Beverage": "Restaurants, breweries, food manufacturers, and catering services",
+  Construction: "Contractors, builders, civil engineering, and construction firms",
+  Manufacturing: "Factories, production facilities, and manufacturing companies",
+  Hospitality: "Hotels, resorts, lodges, and hospitality services",
+  Healthcare: "Hospitals, clinics, pharmacies, and medical services",
+  Education: "Schools, universities, training centers, and educational institutions",
+  Retail: "Shops, stores, supermarkets, and retail businesses",
+  "Real Estate": "Property developers, real estate agencies, and property management",
+  Agriculture: "Farms, agricultural services, and agribusiness companies",
+}
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const categories = await getCategoryCounts()
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -126,6 +80,7 @@ export default function CategoriesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category) => {
               const Icon = categoryIcons[category.name] || Building2
+              const description = categoryDescriptions[category.name] ?? "Discover leading businesses in this category"
               return (
                 <Card key={category.name} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -133,7 +88,7 @@ export default function CategoriesPage() {
                       <Icon className="h-6 w-6 text-primary" />
                     </div>
                     <CardTitle>{category.name}</CardTitle>
-                    <CardDescription>{category.description}</CardDescription>
+                    <CardDescription>{description}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button asChild variant="outline" className="w-full bg-transparent">

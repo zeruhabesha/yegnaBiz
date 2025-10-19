@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, listUsers } from '@/lib/mock-data'
+import { createAdminUser, listAdminUsers } from '@/lib/data/users'
 
 // GET /api/admin/users - Get all users with filtering
 export async function GET(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'all'
     const role = searchParams.get('role') || 'all'
 
-    const users = listUsers({
+    const users = await listAdminUsers({
       search,
       status,
       role,
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const created = createUser({ full_name, email, password, role, phone, location })
+    const created = await createAdminUser({ full_name, email, password, role, phone, location })
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deletePromotionById, getPromotionById, updatePromotionById } from '@/lib/mock-data'
+import { deleteAdminPromotion, getAdminPromotionById, updateAdminPromotion } from '@/lib/data/promotions'
 
 // GET /api/admin/promotions/[id] - Get single promotion
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = params
 
-    const promotion = getPromotionById(Number(id))
+    const promotion = await getAdminPromotionById(Number(id))
 
     if (!promotion) {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function PUT(
       target_audience, budget, spent, clicks, conversions, is_active
     } = body
 
-    const updated = updatePromotionById(Number(id), {
+    const updated = await updateAdminPromotion(Number(id), {
       title,
       description,
       type,
@@ -88,7 +88,7 @@ export async function DELETE(
     const { id } = params
 
     // Check if promotion exists
-    const deleted = deletePromotionById(Number(id))
+    const deleted = await deleteAdminPromotion(Number(id))
     if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'Promotion not found' },

@@ -14,32 +14,6 @@ import { Separator } from "@/components/ui/separator"
 import { Building2, MapPin, Phone, Mail, Globe, Plus, X } from "@/components/icons"
 import { useAuth } from "@/lib/auth-context"
 
-const categories = [
-  "Restaurants & Cafes",
-  "Hotels & Lodging",
-  "Retail & Shopping",
-  "Technology",
-  "Healthcare",
-  "Education",
-  "Construction",
-  "Transportation",
-  "Professional Services",
-  "Entertainment",
-]
-
-const cities = [
-  "Addis Ababa",
-  "Dire Dawa",
-  "Mekele",
-  "Gondar",
-  "Hawassa",
-  "Bahir Dar",
-  "Adama",
-  "Jimma",
-  "Dessie",
-  "Harar",
-]
-
 export default function AddBusinessPage() {
   const router = useRouter()
   const { user } = useAuth()
@@ -60,12 +34,48 @@ export default function AddBusinessPage() {
   const [images, setImages] = useState<string[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
+  const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [referenceError, setReferenceError] = useState<string | null>(null)
+  const [referenceLoading, setReferenceLoading] = useState(true)
 
   useEffect(() => {
     if (!user) {
       router.push("/login")
     }
   }, [user, router])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function fetchReferenceData() {
+      try {
+        setReferenceLoading(true)
+        setReferenceError(null)
+        const response = await fetch("/api/reference-data", { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error("Failed to load reference data")
+        }
+        const json = await response.json()
+        if (!json.success) {
+          throw new Error(json.error || "Failed to load reference data")
+        }
+        setAvailableCategories(json.data.categories)
+        setAvailableCities(json.data.cities)
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          console.error(err)
+          setReferenceError(err instanceof Error ? err.message : "Failed to load reference data")
+        }
+      } finally {
+        setReferenceLoading(false)
+      }
+    }
+
+    fetchReferenceData()
+
+    return () => controller.abort()
+  }, [])
 
   if (!user) {
     return null
@@ -138,6 +148,12 @@ export default function AddBusinessPage() {
       <main className="flex-1 py-8">
         <div className="container max-w-4xl">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {referenceError && (
+              <div className="rounded-md border border-destructive bg-destructive/10 px-4 py-3 text-destructive">
+                {referenceError}
+              </div>
+            )}
+
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -169,10 +185,11 @@ export default function AddBusinessPage() {
                       value={formData.category}
                       onChange={handleChange}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      disabled={referenceLoading}
                       required
                     >
                       <option value="">Select a category</option>
-                      {categories.map((cat) => (
+                      {availableCategories.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
                         </option>
@@ -188,10 +205,11 @@ export default function AddBusinessPage() {
                       value={formData.city}
                       onChange={handleChange}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      disabled={referenceLoading}
                       required
                     >
                       <option value="">Select a city</option>
-                      {cities.map((city) => (
+                      {availableCities.map((city) => (
                         <option key={city} value={city}>
                           {city}
                         </option>

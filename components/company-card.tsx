@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Star, MapPin, Eye } from "@/components/icons"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import type { Company } from "@/lib/mock-data"
+import type { Company } from "@/lib/types/company"
 import Image from "next/image"
 
 interface CompanyCardProps {

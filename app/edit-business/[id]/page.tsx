@@ -12,33 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Building2, Phone, Plus, X, Loader2 } from "@/components/icons"
 import { useAuth } from "@/lib/auth-context"
-import { mockCompanies } from "@/lib/mock-data"
-
-const categories = [
-  "Restaurants & Cafes",
-  "Hotels & Lodging",
-  "Retail & Shopping",
-  "Technology",
-  "Healthcare",
-  "Education",
-  "Construction",
-  "Transportation",
-  "Professional Services",
-  "Entertainment",
-]
-
-const cities = [
-  "Addis Ababa",
-  "Dire Dawa",
-  "Mekele",
-  "Gondar",
-  "Hawassa",
-  "Bahir Dar",
-  "Adama",
-  "Jimma",
-  "Dessie",
-  "Harar",
-]
+import type { Company } from "@/lib/types/company"
 
 export default function EditBusinessPage() {
   const router = useRouter()
@@ -46,6 +20,7 @@ export default function EditBusinessPage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -61,6 +36,8 @@ export default function EditBusinessPage() {
   })
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
+  const [availableCities, setAvailableCities] = useState<string[]>([])
 
   // Redirect if not logged in
   useEffect(() => {
@@ -69,40 +46,65 @@ export default function EditBusinessPage() {
       return
     }
 
-    // Load business data
-    const loadBusiness = () => {
-      // Find business by slug
-      const business = mockCompanies.find((c) => c.slug === params.id)
+    const controller = new AbortController()
 
-      if (!business) {
-        alert("Business not found")
-        router.push("/dashboard")
-        return
+    const loadBusiness = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const [companyResponse, listResponse] = await Promise.all([
+          fetch(`/api/companies/${params.id}`, { signal: controller.signal }),
+          fetch(`/api/companies`, { signal: controller.signal }),
+        ])
+
+        if (!companyResponse.ok) {
+          throw new Error("Failed to load business details")
+        }
+
+        const companyJson = await companyResponse.json()
+        if (!companyJson.success) {
+          throw new Error(companyJson.error || "Failed to load business details")
+        }
+
+        const business: Company = companyJson.data.company
+        setCurrentCompany(business)
+        setFormData({
+          name: business.name,
+          category: business.category,
+          description: business.description,
+          address: business.address || "",
+          city: business.city || "",
+          phone: business.phone || "",
+          email: business.email || "",
+          website: business.website || "",
+          facebook: "",
+          instagram: "",
+          twitter: "",
+        })
+
+        setTags([])
+
+        if (listResponse.ok) {
+          const listJson = await listResponse.json()
+          if (listJson.success) {
+            setAvailableCategories(listJson.data.allCategories)
+            setAvailableCities(listJson.data.allCities)
+          }
+        }
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          setError(err instanceof Error ? err.message : "Failed to load business")
+          console.error(err)
+        }
+      } finally {
+        setIsLoading(false)
       }
-
-      // Check if user owns this business (in production, verify on backend)
-      // For now, allow all logged-in users to edit
-
-      // Populate form
-      setFormData({
-        name: business.name,
-        category: business.category,
-        description: business.description,
-        address: business.address || "",
-        city: business.city || "",
-        phone: business.phone || "",
-        email: business.email || "",
-        website: business.website || "",
-        facebook: "",
-        instagram: "",
-        twitter: "",
-      })
-
-      setTags([])
-      setIsLoading(false)
     }
 
     loadBusiness()
+
+    return () => controller.abort()
   }, [user, params.id, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -190,6 +192,12 @@ export default function EditBusinessPage() {
 
       <main className="flex-1 py-8">
         <div className="container max-w-4xl">
+          {error && (
+            <div className="mb-6 rounded-md border border-destructive bg-destructive/10 px-4 py-3 text-destructive">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <Card>
@@ -225,7 +233,12 @@ export default function EditBusinessPage() {
                       required
                     >
                       <option value="">Select a category</option>
-                      {categories.map((cat) => (
+                      {(availableCategories.length > 0
+                        ? availableCategories
+                        : formData.category
+                        ? [formData.category]
+                        : []
+                      ).map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
                         </option>
@@ -244,7 +257,12 @@ export default function EditBusinessPage() {
                       required
                     >
                       <option value="">Select a city</option>
-                      {cities.map((city) => (
+                      {(availableCities.length > 0
+                        ? availableCities
+                        : formData.city
+                        ? [formData.city]
+                        : []
+                      ).map((city) => (
                         <option key={city} value={city}>
                           {city}
                         </option>

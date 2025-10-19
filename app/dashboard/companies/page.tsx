@@ -1,38 +1,49 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Plus, Eye, Star, Edit, Trash2, Building2 } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import type { Company } from "@/lib/types/company"
 
 export default function MyCompaniesPage() {
-  // Mock data - in production, this would come from an API
-  const myCompanies = [
-    {
-      id: 7,
-      name: "Yoha Construction",
-      slug: "yoha-construction",
-      category: "Construction",
-      status: "active",
-      views: 4320,
-      rating: 4.2,
-      reviewCount: 156,
-      isPremium: false,
-    },
-    {
-      id: 8,
-      name: "Sheba Leather",
-      slug: "sheba-leather",
-      category: "Manufacturing",
-      status: "active",
-      views: 6540,
-      rating: 4.3,
-      reviewCount: 287,
-      isPremium: false,
-    },
-  ]
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function fetchCompanies() {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch("/api/dashboard/companies", { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error("Failed to load companies")
+        }
+        const json = await response.json()
+        if (!json.success) {
+          throw new Error(json.error || "Failed to load companies")
+        }
+        setCompanies(json.data)
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          console.error(err)
+          setError(err instanceof Error ? err.message : "Failed to load companies")
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCompanies()
+
+    return () => controller.abort()
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -49,21 +60,41 @@ export default function MyCompaniesPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {myCompanies.map((company) => (
-          <Card key={company.id}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <CardTitle className="text-xl">{company.name}</CardTitle>
-                    <Badge variant={company.status === "active" ? "default" : "secondary"}>{company.status}</Badge>
-                    {company.isPremium && <Badge variant="secondary">Premium</Badge>}
-                  </div>
-                  <CardDescription>{company.category}</CardDescription>
-                </div>
+      {error && (
+        <div className="rounded-md border border-destructive bg-destructive/10 px-4 py-3 text-destructive">{error}</div>
+      )}
 
-                <DropdownMenu>
+      <div className="grid grid-cols-1 gap-6">
+        {loading
+          ? Array.from({ length: 2 }).map((_, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <div className="h-6 w-48 bg-muted animate-pulse rounded" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+                  <div className="grid grid-cols-3 gap-4">
+                    {Array.from({ length: 3 }).map((__, idx) => (
+                      <div key={idx} className="h-10 bg-muted animate-pulse rounded" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          : companies.map((company) => (
+            <Card key={company.id}>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <CardTitle className="text-xl">{company.name}</CardTitle>
+                      <Badge variant={company.status === "active" ? "default" : "secondary"}>{company.status}</Badge>
+                      {company.isPremium && <Badge variant="secondary">Premium</Badge>}
+                    </div>
+                    <CardDescription>{company.category}</CardDescription>
+                  </div>
+
+                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <Edit className="h-4 w-4" />
@@ -90,7 +121,7 @@ export default function MyCompaniesPage() {
                   <Eye className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Views</p>
-                    <p className="font-semibold">{company.views.toLocaleString()}</p>
+                    <p className="font-semibold">{company.viewCount.toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -124,7 +155,7 @@ export default function MyCompaniesPage() {
         ))}
       </div>
 
-      {myCompanies.length === 0 && (
+      {!loading && companies.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
