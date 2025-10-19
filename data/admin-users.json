@@ -9,7 +9,7 @@
     "location": "Addis Ababa, Ethiopia",
     "created_at": "2024-01-10T08:00:00.000Z",
     "updated_at": "2024-01-10T08:00:00.000Z",
-    "password_hash": "salt1:abc123"
+    "password_hash": "68d046b02693538c:072695f5793a448cae63f480f5bbafff30a1d96fb13f2dc240ccacd41c8f658d"
   },
   {
     "id": 2,
@@ -21,7 +21,7 @@
     "location": "Adama, Ethiopia",
     "created_at": "2024-01-10T08:00:00.000Z",
     "updated_at": "2024-01-10T08:00:00.000Z",
-    "password_hash": "salt2:def456"
+    "password_hash": "36303a1f75898240:2adc591581877ad9054257f43badc04ab03061c5ba5b6a2e54a5e1a06cb349ab"
   },
   {
     "id": 3,
@@ -33,6 +33,6 @@
     "location": "Bahir Dar, Ethiopia",
     "created_at": "2024-01-10T08:00:00.000Z",
     "updated_at": "2024-01-10T08:00:00.000Z",
-    "password_hash": "salt3:ghi789"
+    "password_hash": "2e5a2d49e8131c34:8b5195d4f3c5bd40a907710764e601b74ccbd0f0786fd55bf4c92434419219ad"
   }
 ]

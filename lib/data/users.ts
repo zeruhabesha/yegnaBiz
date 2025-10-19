@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'crypto'
+import { createHash, randomBytes, timingSafeEqual } from 'crypto'
 import type { AdminUser } from '@/lib/types/admin'
 import { readJsonFile, writeJsonFile } from '@/lib/data/json-store'
 
@@ -15,6 +15,23 @@ function hashPassword(password: string) {
   const salt = randomBytes(8).toString('hex')
   const hash = createHash('sha256').update(password + salt).digest('hex')
   return `${salt}:${hash}`
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  const [salt, originalHash] = storedHash.split(':')
+  if (!salt || !originalHash) {
+    return false
+  }
+
+  const computed = createHash('sha256').update(password + salt).digest('hex')
+  const originalBuffer = Buffer.from(originalHash, 'hex')
+  const computedBuffer = Buffer.from(computed, 'hex')
+
+  if (originalBuffer.length !== computedBuffer.length) {
+    return false
+  }
+
+  return timingSafeEqual(originalBuffer, computedBuffer)
 }
 
 async function readAdminUsers(): Promise<StoredAdminUser[]> {
@@ -74,6 +91,13 @@ export async function createAdminUser(data: {
   }
 
   const users = await readAdminUsers()
+
+  const normalizedEmail = data.email.toLowerCase()
+  const duplicate = users.find((user) => user.email.toLowerCase() === normalizedEmail)
+  if (duplicate) {
+    throw new Error('Email already exists')
+  }
+
   const nextId = users.reduce((max, user) => Math.max(max, user.id), 0) + 1
   const timestamp = new Date().toISOString()
 
@@ -94,6 +118,26 @@ export async function createAdminUser(data: {
   await writeAdminUsers(users)
 
   return mapStoredUser(stored)
+}
+
+export async function authenticateAdminUser(email: string, password: string): Promise<AdminUser | null> {
+  const users = await readAdminUsers()
+  const normalizedEmail = email.toLowerCase()
+  const user = users.find((item) => item.email.toLowerCase() === normalizedEmail)
+
+  if (!user) {
+    return null
+  }
+
+  if (!verifyPassword(password, user.password_hash)) {
+    return null
+  }
+
+  if (user.status !== 'active') {
+    throw new Error('Account is not active')
+  }
+
+  return mapStoredUser(user)
 }
 
 export async function updateAdminUser(id: number, updates: Partial<AdminUser>): Promise<AdminUser | undefined> {

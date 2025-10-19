@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
       data: created
     })
   } catch (error) {
+    if (error instanceof Error && error.message === 'Email already exists') {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 409 }
+      )
+    }
+
     console.error('Error creating user:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to create user' },
