@@ -36,77 +36,100 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4">
-          <Link href="/" className="flex items-center gap-2 justify-center">
-            <Building2 className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">YegnaBiz</span>
-          </Link>
-          <div className="text-center">
-            <CardTitle className="text-2xl">Welcome Back</CardTitle>
-            <CardDescription>Sign in to your account to continue</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
-                {error}
-              </div>
-            )}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-background via-primary/5 to-accent/10 px-4 py-16">
+      <div className="pointer-events-none absolute inset-0 opacity-60" aria-hidden>
+        <div className="absolute -top-40 left-1/3 h-80 w-80 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-32 right-1/4 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.06),transparent_60%)]" />
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-              />
+      <div className="relative z-10 grid w-full max-w-5xl gap-12 md:grid-cols-2">
+        <div className="flex flex-col justify-center space-y-6 text-center md:text-left">
+          <Link href="/" className="mx-auto flex items-center justify-center gap-2 md:mx-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+              <Building2 className="h-6 w-6 text-white" />
             </div>
+            <span className="text-2xl font-bold text-white">YegnaBiz</span>
+          </Link>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-bold text-white md:text-5xl">Welcome back</h1>
+            <p className="text-lg text-white/80">
+              Sign in to manage your listings, respond to reviews, and discover new opportunities across Ethiopia.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-white/80 backdrop-blur">
+            <p className="text-sm leading-relaxed">
+              “YegnaBiz has connected us with customers all over Ethiopia. Updating our profile and responding to reviews is now effortless.”
+            </p>
+            <span className="mt-4 block text-sm font-semibold text-white">— Selam, Addis Flower Boutique</span>
+          </div>
+        </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password?
+        <Card className="border-white/10 bg-background/80 shadow-xl shadow-primary/10">
+          <CardHeader className="space-y-2 text-center">
+            <CardTitle className="text-2xl">Sign in to your account</CardTitle>
+            <CardDescription>Manage your presence on Ethiopia’s trusted business directory.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <Label htmlFor="password">Password</Label>
+                  <Link href="/forgot-password" className="text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+
+              <div className="text-center text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Link href="/register" className="font-medium text-primary hover:underline">
+                  Create one
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-
-            <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline font-medium">
-                Sign up
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
+
 }

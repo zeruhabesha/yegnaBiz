@@ -23,7 +23,9 @@ export function Header() {
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 YegnaBiz
               </span>
-              <span className="text-xs text-muted-foreground/60 -mt-1">የኛ ቢዝነስ</span>
+              <span className="text-[0.65rem] uppercase tracking-[0.35em] text-muted-foreground/60 -mt-1">
+                Ethiopia's Business Guide
+              </span>
             </div>
           </div>
         </Link>
@@ -31,25 +33,20 @@ export function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
           {[
-            { href: "/", label: "Home" },
-            { href: "/companies", label: "Companies" },
-            { href: "/categories", label: "Categories" },
-            { href: "/promote", label: "Promote" },
-            { href: "/about", label: "About" },
-            { href: "/contact", label: "Contact" },
-          ].map(({ href, label }) => (
+            { href: "/", label: "Home", helper: "Start here" },
+            { href: "/companies", label: "Companies", helper: "Verified directory" },
+            { href: "/categories", label: "Categories", helper: "Industry hubs" },
+            { href: "/promote", label: "Promote", helper: "Grow with us" },
+            { href: "/about", label: "About", helper: "Our story" },
+            { href: "/contact", label: "Contact", helper: "Talk to us" },
+          ].map(({ href, label, helper }) => (
             <Link
               key={href}
               href={href}
               className="relative text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 group flex flex-col items-center"
             >
               <span>{label}</span>
-              {label === 'Home' && <span className="text-xs text-muted-foreground/60">ዋና ገጽ</span>}
-              {label === 'Companies' && <span className="text-xs text-muted-foreground/60">ኩባንያዎች</span>}
-              {label === 'Categories' && <span className="text-xs text-muted-foreground/60">ምድቦች</span>}
-              {label === 'Promote' && <span className="text-xs text-muted-foreground/60">ያስተዋውቁ</span>}
-              {label === 'About' && <span className="text-xs text-muted-foreground/60">ስለኛ</span>}
-              {label === 'Contact' && <span className="text-xs text-muted-foreground/60">አግኙን</span>}
+              <span className="text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground/60">{helper}</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
             </Link>
           ))}

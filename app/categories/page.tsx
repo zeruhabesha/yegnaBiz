@@ -17,6 +17,8 @@ import {
 } from "@/components/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { PageHero } from "@/components/page-hero"
+import { PageSection } from "@/components/page-section"
 
 const categoryIcons: Record<string, any> = {
   Technology: Laptop,
@@ -101,42 +103,36 @@ export default function CategoriesPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/hero-companies.jpg')" }}
+      <PageHero
+        eyebrow="Categories"
+        title="Browse by Category"
+        description="Explore businesses across all industries in Ethiopia and discover the leaders that power our economy."
+        backgroundImage="/hero-companies.jpg"
+      />
+
+      <main className="flex-1">
+        <PageSection
+          align="center"
+          title="Curated industry collections"
+          description="Each category brings together verified businesses, customer stories, and the expertise you need."
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-primary/70 to-black/80"></div>
-        </div>
-
-        <div className="container py-12 md:py-16 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">Browse by Category</h1>
-            <p className="text-lg text-gray-200 max-w-2xl mx-auto">
-              Explore businesses across all industries in Ethiopia
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <main className="flex-1 py-12">
-        <div className="container">
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => {
               const Icon = categoryIcons[category.name] || Building2
               return (
-                <Card key={category.name} className="hover:shadow-lg transition-shadow">
+                <Card
+                  key={category.name}
+                  className="h-full border-white/10 bg-background/70 transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-primary/20"
+                >
                   <CardHeader>
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/15">
                       <Icon className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle>{category.name}</CardTitle>
-                    <CardDescription>{category.description}</CardDescription>
+                    <CardTitle className="text-xl font-semibold text-foreground">{category.name}</CardTitle>
+                    <CardDescription className="leading-relaxed text-muted-foreground">{category.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button asChild variant="outline" className="w-full bg-transparent">
+                    <Button asChild variant="outline" className="w-full rounded-full border-primary/40 py-2">
                       <Link href={`/companies?category=${encodeURIComponent(category.name)}`}>
                         View {category.count} Companies
                       </Link>
@@ -146,7 +142,7 @@ export default function CategoriesPage() {
               )
             })}
           </div>
-        </div>
+        </PageSection>
       </main>
 
       <Footer />

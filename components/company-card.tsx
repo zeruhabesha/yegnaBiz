@@ -28,7 +28,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
                   <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300">
                     <span className="text-2xl font-bold text-primary">{company.name.charAt(0)}</span>
                   </div>
-                  <span className="text-sm">ምስል የለም</span>
+                  <span className="text-sm">Image coming soon</span>
                 </div>
               </div>
             )}
@@ -38,18 +38,18 @@ export function CompanyCard({ company }: CompanyCardProps) {
               {company.isPremium && (
                 <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white border-0 shadow-lg animate-pulse">
                   <BadgeCheck className="h-3 w-3 mr-1" />
-                  ፕሪሚየም
+                  Premium
                 </Badge>
               )}
               {company.isVerified && (
                 <Badge className="bg-green-500/90 text-white border-0 shadow-lg">
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  የተረጋገጠ
+                  Verified
                 </Badge>
               )}
               {company.isFeatured && (
                 <Badge className="bg-primary/90 text-white border-0 shadow-lg">
-                  ተለይቶ የቀረበ
+                  Featured
                 </Badge>
               )}
             </div>
@@ -142,9 +142,11 @@ export function CompanyCard({ company }: CompanyCardProps) {
           {/* Additional info */}
           <div className="pt-2 border-t border-border/50">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>የተቋቋመ {company.establishedYear || 'ያልታወቀ'}</span>
+              <span>
+                Established {company.establishedYear || 'N/A'}
+              </span>
               {company.employeeCount && (
-                <span>{company.employeeCount} ሰራተኞች</span>
+                <span>{company.employeeCount} team members</span>
               )}
             </div>
           </div>

@@ -140,13 +140,13 @@ export function SearchHero() {
           </form>
 
           <div className="flex flex-wrap gap-3 justify-center pt-8 animate-fade-in-delayed">
-            <span className="text-sm text-gray-200 font-medium">ታዋቂ ፍለጋዎች:</span>
+            <span className="text-sm text-gray-200 font-medium">Popular searches:</span>
             {[
-              { label: "ምግብ ቤቶች", search: "restaurants" },
-              { label: "ሆቴሎች", search: "hotels" },
-              { label: "ባንኮች", search: "banks" },
-              { label: "ቴክኖሎጂ", search: "technology" },
-              { label: "ጤና አገልግሎቶች", search: "healthcare" }
+              { label: "Restaurants", search: "restaurants" },
+              { label: "Hotels", search: "hotels" },
+              { label: "Banks", search: "banks" },
+              { label: "Technology", search: "technology" },
+              { label: "Healthcare", search: "healthcare" }
             ].map((category) => (
               <Button
                 key={category.search}

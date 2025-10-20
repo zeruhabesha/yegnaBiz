@@ -16,7 +16,9 @@ export function Footer() {
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   YegnaBiz
                 </span>
-                <span className="text-xs text-muted-foreground/60 -mt-1">የኛ ቢዝነስ</span>
+                <span className="text-[0.65rem] uppercase tracking-[0.35em] text-muted-foreground/60 -mt-1">
+                  Ethiopia's Business Guide
+                </span>
               </div>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -31,19 +33,19 @@ export function Footer() {
                 <li>
                   <Link href="/add-business" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Add Your Business</span>
-                    <span className="text-xs text-muted-foreground/60">ንግድዎን ያክሉ</span>
+                    <span className="text-xs text-muted-foreground/50">Showcase your services</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/pricing" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Pricing</span>
-                    <span className="text-xs text-muted-foreground/60">ዋጋ አሰጣጥ</span>
+                    <span className="text-xs text-muted-foreground/50">Plans for every stage</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/features" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Features</span>
-                    <span className="text-xs text-muted-foreground/60">ባህሪያት</span>
+                    <span className="text-xs text-muted-foreground/50">Tools to help you grow</span>
                   </Link>
                 </li>
               </ul>
@@ -57,25 +59,25 @@ export function Footer() {
                 <li>
                   <Link href="/about" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>About Us</span>
-                    <span className="text-xs text-muted-foreground/60">ስለ እኛ</span>
+                    <span className="text-xs text-muted-foreground/50">Learn our mission</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/contact" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Contact</span>
-                    <span className="text-xs text-muted-foreground/60">ተገናኝ</span>
+                    <span className="text-xs text-muted-foreground/50">We're here to help</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/help" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Help Center</span>
-                    <span className="text-xs text-muted-foreground/60">እርዳታ</span>
+                    <span className="text-xs text-muted-foreground/50">Guides & tutorials</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/blog" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Blog</span>
-                    <span className="text-xs text-muted-foreground/60">ብሎግ</span>
+                    <span className="text-xs text-muted-foreground/50">Insights & trends</span>
                   </Link>
                 </li>
               </ul>
@@ -89,19 +91,19 @@ export function Footer() {
                 <li>
                   <Link href="/privacy" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Privacy Policy</span>
-                    <span className="text-xs text-muted-foreground/60">የግላዊነት ፖሊሲ</span>
+                    <span className="text-xs text-muted-foreground/50">How we protect data</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/terms" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Terms of Service</span>
-                    <span className="text-xs text-muted-foreground/60">የአገልግሎት ውሎች</span>
+                    <span className="text-xs text-muted-foreground/50">Your rights & ours</span>
                   </Link>
                 </li>
                 <li>
                   <Link href="/cookies" className="flex flex-col hover:text-primary transition-colors duration-200 hover:translate-x-1">
                     <span>Cookie Policy</span>
-                    <span className="text-xs text-muted-foreground/60">የኩኪ ፖሊሲ</span>
+                    <span className="text-xs text-muted-foreground/50">Manage preferences</span>
                   </Link>
                 </li>
               </ul>
@@ -112,7 +114,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-border/50 text-center">
           <p className="text-sm text-muted-foreground">
             2024 YegnaBiz. All rights reserved.
-            <span className="block text-xs text-muted-foreground/60">ሁሉም መብቶች የተጠበቁ ናቸው። በኢትዮጵያ የተሰራ።</span>
+            <span className="block text-xs text-muted-foreground/50">Proudly crafted in Ethiopia for the world.</span>
           </p>
         </div>
       </div>

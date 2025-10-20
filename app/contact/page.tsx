@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Mail, Phone, MapPin, Clock } from "@/components/icons"
+import { PageHero } from "@/components/page-hero"
+import { PageSection } from "@/components/page-section"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -77,189 +79,136 @@ export default function ContactPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden border-b">
-          {/* Background Image with Overlay */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('/hero-contact.jpg')" }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-primary/70 to-black/80"></div>
-          </div>
+        <PageHero
+          title="Contact us"
+          description="Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible."
+          backgroundImage="/hero-contact.jpg"
+        />
 
-          <div className="container py-16 md:py-24 relative z-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">Contact Us</h1>
-              <p className="text-xl text-gray-100">
-                Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Contact Content */}
-        <section className="py-16">
-          <div className="container">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {/* Contact Form */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Send us a Message</CardTitle>
-                    <CardDescription>Fill out the form below and we'll get back to you shortly.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">Name *</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            placeholder="Your name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email *</Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="your@email.com"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                          />
-                        </div>
-                      </div>
-
+        <PageSection tone="default">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="border-white/10 bg-background/70">
+                <CardHeader>
+                  <CardTitle>Send us a Message</CardTitle>
+                  <CardDescription>Fill out the form below and we'll get back to you shortly.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="subject">Subject *</Label>
+                        <Label htmlFor="name">Name *</Label>
                         <Input
-                          id="subject"
-                          name="subject"
-                          placeholder="What is this regarding?"
-                          value={formData.subject}
+                          id="name"
+                          name="name"
+                          placeholder="Your name"
+                          value={formData.name}
                           onChange={handleChange}
                           required
                         />
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="message">Message *</Label>
-                        <Textarea
-                          id="message"
-                          name="message"
-                          placeholder="Tell us more about your inquiry..."
-                          value={formData.message}
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={formData.email}
                           onChange={handleChange}
-                          rows={6}
                           required
                         />
                       </div>
+                    </div>
 
-                      {/* reCAPTCHA - Only show if site key is configured */}
+                    <div className="space-y-2">
+                      <Label htmlFor="subject">Subject *</Label>
+                      <Input
+                        id="subject"
+                        name="subject"
+                        placeholder="What is this regarding?"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Message *</Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        placeholder="Tell us more about your inquiry..."
+                        value={formData.message}
+                        onChange={handleChange}
+                        rows={6}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-4">
                       {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
-                        <div className="flex justify-start">
-                          <ReCAPTCHA
-                            ref={recaptchaRef}
-                            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                            theme="light"
-                          />
-                        </div>
+                        <ReCAPTCHA
+                          ref={recaptchaRef}
+                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                        />
                       )}
-
-                      <Button type="submit" size="lg" className="w-full md:w-auto" disabled={isSubmitting}>
-                        {isSubmitting ? "Sending..." : "Send Message"}
+                      <Button type="submit" disabled={isSubmitting} className="w-full">
+                        {isSubmitting ? 'Sending...' : 'Send Message'}
                       </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </div>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Contact Information */}
-              <div className="space-y-6">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-6">
-                      <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Mail className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Email</h3>
-                          <a href="mailto:zeruhabesha09@gmail.com" className="text-sm text-muted-foreground hover:text-primary">
-                            zeruhabesha09@gmail.com
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Phone className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Phone</h3>
-                          <a href="tel:+251935964964" className="text-sm text-muted-foreground hover:text-primary">
-                            +251 935 964 964 
-                          </a>
-                          <br />
-                         
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <MapPin className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Office</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Bole Road, Addis Ababa
-                            <br />
-                            Ethiopia
+            <div className="space-y-6">
+              {[
+                {
+                  icon: Mail,
+                  title: 'Email',
+                  lines: ['support@yegnabiz.com', 'zeruhabesha09@gmail.com'],
+                },
+                {
+                  icon: Phone,
+                  title: 'Phone',
+                  lines: ['+251 911 123 456', '+251 912 654 321'],
+                },
+                {
+                  icon: MapPin,
+                  title: 'Office',
+                  lines: ['Addis Ababa, Ethiopia', 'Bole, Africa Avenue'],
+                },
+                {
+                  icon: Clock,
+                  title: 'Hours',
+                  lines: ['Monday - Friday: 9am - 6pm', 'Saturday: 10am - 4pm'],
+                },
+              ].map(({ icon: Icon, title, lines }) => (
+                <Card key={title} className="border-white/10 bg-background/70">
+                  <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>We're here to help with any questions you may have.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <Icon className="mt-1 h-5 w-5 text-primary" />
+                      <div>
+                        {lines.map((line) => (
+                          <p key={line} className="text-sm text-muted-foreground">
+                            {line}
                           </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-4">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Clock className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold mb-1">Business Hours</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Monday - Friday: 9:00 AM - 6:00 PM
-                            <br />
-                            Saturday: 10:00 AM - 4:00 PM
-                            <br />
-                            Sunday: Closed
-                          </p>
-                        </div>
+                        ))}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold mb-3">Frequently Asked Questions</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Before reaching out, you might find answers to your questions in our FAQ section.
-                    </p>
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href="/faq">Visit FAQ</a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+              ))}
             </div>
           </div>
-        </section>
+        </PageSection>
       </main>
+
 
       <Footer />
     </div>

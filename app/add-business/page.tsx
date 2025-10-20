@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Building2, MapPin, Phone, Mail, Globe, Plus, X } from "@/components/icons"
 import { useAuth } from "@/lib/auth-context"
+import { PageHero } from "@/components/page-hero"
+import { PageSection } from "@/components/page-section"
 
 const categories = [
   "Restaurants & Cafes",
@@ -118,26 +120,17 @@ export default function AddBusinessPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/hero-promote.jpg')" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-primary/70 to-black/80"></div>
-        </div>
+      <PageHero
+        eyebrow="Partner with YegnaBiz"
+        title="Add your business"
+        description="List your business on YegnaBiz, reach thousands of Ethiopian customers, and build a verified digital presence."
+        backgroundImage="/hero-promote.jpg"
+      />
 
-        <div className="container py-12 md:py-16 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">Add Your Business</h1>
-            <p className="text-gray-200">List your business on YegnaBiz and reach thousands of customers</p>
-          </div>
-        </div>
-      </section>
-
-      <main className="flex-1 py-8">
-        <div className="container max-w-4xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <main className="flex-1">
+        <PageSection tone="default" className="py-12">
+          <div className="mx-auto max-w-4xl">
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -168,7 +161,7 @@ export default function AddBusinessPage() {
                       name="category"
                       value={formData.category}
                       onChange={handleChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="flex h-11 w-full rounded-lg border border-white/20 bg-background/70 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       required
                     >
                       <option value="">Select a category</option>
@@ -187,7 +180,7 @@ export default function AddBusinessPage() {
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="flex h-11 w-full rounded-lg border border-white/20 bg-background/70 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       required
                     >
                       <option value="">Select a city</option>
@@ -385,8 +378,9 @@ export default function AddBusinessPage() {
                 </p>
               </CardContent>
             </Card>
-          </form>
-        </div>
+            </form>
+          </div>
+        </PageSection>
       </main>
 
       <Footer />

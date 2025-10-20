@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCategoryCounts } from "@/lib/data/companies"
 import { Laptop, Building2, ShoppingBag, Home, Wheat, Briefcase } from "@/components/icons"
+import { PageSection } from "@/components/page-section"
 
 const colorPalette = [
   "text-blue-500",
@@ -32,35 +33,34 @@ export async function CategoryGrid() {
   const limitedCategories = categories.slice(0, 6)
 
   return (
-    <section className="py-16 bg-muted/40">
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-2">Browse by Category</h2>
-          <p className="text-muted-foreground">Explore businesses across different industries</p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {limitedCategories.map((category, index) => {
-            const Icon = getCategoryIcon(category.name)
-            const color = colorPalette[index % colorPalette.length]
-            return (
-              <Link key={category.name} href={`/companies?category=${encodeURIComponent(category.name)}`}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                  <CardContent className="p-6 text-center space-y-3">
-                    <div className={`h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto ${color}`}>
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm">{category.name}</h3>
-                      <p className="text-xs text-muted-foreground">{category.count} businesses</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            )
-          })}
-        </div>
+    <PageSection
+      tone="muted"
+      align="center"
+      eyebrow="Categories"
+      title="Browse by category"
+      description="Explore businesses across Ethiopia's most vibrant industries"
+    >
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {limitedCategories.map((category, index) => {
+          const Icon = getCategoryIcon(category.name)
+          const color = colorPalette[index % colorPalette.length]
+          return (
+            <Link key={category.name} href={`/companies?category=${encodeURIComponent(category.name)}`}>
+              <Card className="group h-full cursor-pointer border-white/10 transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:shadow-primary/20">
+                <CardContent className="space-y-4 p-6 text-center">
+                  <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted/40 ${color}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">{category.name}</h3>
+                    <p className="text-xs text-muted-foreground">{category.count} businesses</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
-    </section>
+    </PageSection>
   )
 }
