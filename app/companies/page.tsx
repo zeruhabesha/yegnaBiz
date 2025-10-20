@@ -10,6 +10,8 @@ import type { Company } from "@/lib/types/company"
 import { Input } from "@/components/ui/input"
 import { Search } from "@/components/icons"
 import { Button } from "@/components/ui/button"
+import { PageHero } from "@/components/page-hero"
+import { PageSection } from "@/components/page-section"
 import {
   Pagination,
   PaginationContent,
@@ -139,31 +141,20 @@ export default function CompaniesPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/hero-companies.jpg')" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-primary/70 to-black/80"></div>
-        </div>
+      <PageHero
+        eyebrow="Directory"
+        title="Browse Companies"
+        description={`Discover ${totalCompanies.toLocaleString()}+ businesses across Ethiopia and connect with the teams powering our economy.`}
+        backgroundImage="/hero-companies.jpg"
+      />
 
-        <div className="container py-12 md:py-16 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">Browse Companies</h1>
-            <p className="text-gray-200">Discover {totalCompanies}+ businesses across Ethiopia</p>
-          </div>
-        </div>
-      </section>
-
-      <main className="flex-1 py-8">
-        <div className="container">
-
-          <div className="flex flex-col lg:flex-row gap-6">
-            <aside className="lg:w-64 space-y-4">
+      <main className="flex-1">
+        <PageSection tone="default" className="py-12">
+          <div className="flex flex-col gap-8 lg:flex-row">
+            <aside className="space-y-5 rounded-3xl border border-white/10 bg-background/70 p-6 shadow-lg shadow-black/5 backdrop-blur lg:w-72">
               <div className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Search companies..."
@@ -198,47 +189,58 @@ export default function CompaniesPage() {
                   handleFilterChange()
                 }}
                 sortBy={sortBy}
-                onSortChange={(sort) => {
-                  setSortBy(sort)
+                onSortByChange={(value) => {
+                  setSortBy(value)
                   handleFilterChange()
                 }}
                 showVerifiedOnly={showVerifiedOnly}
-                onVerifiedChange={(verified) => {
-                  setShowVerifiedOnly(verified)
+                onShowVerifiedOnlyChange={(checked) => {
+                  setShowVerifiedOnly(checked)
                   handleFilterChange()
                 }}
                 showFeaturedOnly={showFeaturedOnly}
-                onFeaturedChange={(featured) => {
-                  setShowFeaturedOnly(featured)
+                onShowFeaturedOnlyChange={(checked) => {
+                  setShowFeaturedOnly(checked)
                   handleFilterChange()
                 }}
                 availableCategories={availableCategories}
                 availableCities={availableCities}
               />
+
+              <Button
+                variant="outline"
+                className="w-full rounded-full border-primary/40"
+                onClick={() => {
+                  setSearchQuery("")
+                  setLocationQuery("")
+                  setSelectedCategories([])
+                  setSelectedCities([])
+                  setShowVerifiedOnly(false)
+                  setShowFeaturedOnly(false)
+                  setSortBy("relevance")
+                  setCurrentPage(1)
+                }}
+              >
+                Reset Filters
+              </Button>
             </aside>
 
-            <div className="flex-1">
-              <div className="mb-6 flex items-center justify-between">
-                {error ? (
-                  <p className="text-sm text-destructive">{error}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {loading && companies.length === 0
-                      ? "Loading companies..."
-                      : `Showing ${companies.length === 0 ? 0 : startIndex + 1}-${Math.min(endIndex, companies.length)} of ${companies.length} ${companies.length === 1 ? "company" : "companies"}`}
-                  </p>
-                )}
-              </div>
+            <div className="flex-1 space-y-6">
+              {error && (
+                <div className="rounded-3xl border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+                  {error}
+                </div>
+              )}
 
-              {loading && companies.length === 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {Array.from({ length: Math.min(ITEMS_PER_PAGE, 4) }).map((_, index) => (
-                    <div key={index} className="h-48 rounded-xl bg-muted animate-pulse" />
+              {loading ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="h-48 animate-pulse rounded-3xl border border-white/10 bg-muted/30" />
                   ))}
                 </div>
-              ) : companies.length > 0 ? (
+              ) : paginatedCompanies.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {paginatedCompanies.map((company) => (
                       <CompanyCard key={company.id} company={company} />
                     ))}
@@ -252,42 +254,41 @@ export default function CompaniesPage() {
                             href="#"
                             onClick={(e) => {
                               e.preventDefault()
-                              if (currentPage > 1) setCurrentPage(currentPage - 1)
+                              if (currentPage > 1) {
+                                setCurrentPage(currentPage - 1)
+                              }
                             }}
-                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
-
-                        {getPageNumbers().map((page, index) =>
-                          page === "ellipsis" ? (
-                            <PaginationItem key={`ellipsis-${index}`}>
+                        {getPageNumbers().map((page, index) => (
+                          <PaginationItem key={index}>
+                            {page === "ellipsis" ? (
                               <PaginationEllipsis />
-                            </PaginationItem>
-                          ) : (
-                            <PaginationItem key={page}>
+                            ) : (
                               <PaginationLink
                                 href="#"
+                                isActive={currentPage === page}
                                 onClick={(e) => {
                                   e.preventDefault()
-                                  setCurrentPage(page as number)
+                                  if (typeof page === "number") {
+                                    setCurrentPage(page)
+                                  }
                                 }}
-                                isActive={currentPage === page}
-                                className="cursor-pointer"
                               >
                                 {page}
                               </PaginationLink>
-                            </PaginationItem>
-                          ),
-                        )}
-
+                            )}
+                          </PaginationItem>
+                        ))}
                         <PaginationItem>
                           <PaginationNext
                             href="#"
                             onClick={(e) => {
                               e.preventDefault()
-                              if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+                              if (currentPage < totalPages) {
+                                setCurrentPage(currentPage + 1)
+                              }
                             }}
-                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -295,10 +296,14 @@ export default function CompaniesPage() {
                   )}
                 </>
               ) : (
-                <div className="text-center py-12">
-                  <p className="text-lg text-muted-foreground mb-4">No companies found matching your criteria</p>
+                <div className="rounded-3xl border border-dashed border-white/30 bg-background/60 p-12 text-center backdrop-blur">
+                  <h2 className="mb-2 text-2xl font-semibold">No companies found</h2>
+                  <p className="mb-4 text-muted-foreground">
+                    Try adjusting your filters or search terms to discover more businesses.
+                  </p>
                   <Button
                     variant="outline"
+                    className="rounded-full border-primary/40"
                     onClick={() => {
                       setSearchQuery("")
                       setLocationQuery("")
@@ -310,14 +315,15 @@ export default function CompaniesPage() {
                       setCurrentPage(1)
                     }}
                   >
-                    Clear Filters
+                    Reset Filters
                   </Button>
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </PageSection>
       </main>
+
 
       <Footer />
     </div>

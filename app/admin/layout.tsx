@@ -10,6 +10,8 @@ import { AdminNav } from "@/components/admin-nav"
 import { useAuth } from "@/lib/auth-context"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { PageHero } from "@/components/page-hero"
+import { PageSection } from "@/components/page-section"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -33,25 +35,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 py-8 bg-muted/30">
-        <div className="container">
-          <div className="mb-6">
-            <Badge variant="secondary" className="mb-2">
-              Admin Panel
-            </Badge>
-            <h1 className="text-2xl font-bold">YegnaBiz Administration</h1>
-          </div>
+      <PageHero
+        align="start"
+        eyebrow="Internal"
+        title="YegnaBiz Administration"
+        description="Manage listings, oversee reviews, and keep the marketplace thriving."
+        actions={<Badge variant="secondary" className="bg-white/10 text-white">Admin Panel</Badge>}
+      />
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <main className="flex-1">
+        <PageSection tone="default" className="py-10">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             <aside className="lg:col-span-1">
-              <Card className="p-4">
+              <Card className="rounded-3xl border-white/10 bg-background/70 p-5 shadow-lg shadow-black/5 backdrop-blur">
                 <AdminNav />
               </Card>
             </aside>
 
-            <div className="lg:col-span-3">{children}</div>
+            <div className="lg:col-span-3">
+              <div className="rounded-3xl border border-white/10 bg-background/70 p-6 shadow-lg shadow-black/5 backdrop-blur">
+                {children}
+              </div>
+            </div>
           </div>
-        </div>
+        </PageSection>
       </main>
 
       <Footer />

@@ -4,6 +4,7 @@ import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
 import { LanguageProvider } from "@/lib/language-context"
 import { PromoWrapper } from "@/components/promo-wrapper"
+import { GlobalBackground } from "@/components/global-background"
 
 export const metadata: Metadata = {
   title: "YegnaBiz - Ethiopia Business Directory",
@@ -18,7 +19,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="antialiased">
-      <body className="font-sans">
+      <body className="font-sans bg-background text-foreground">
+        <GlobalBackground />
         <LanguageProvider>
           <AuthProvider>
             <PromoWrapper />

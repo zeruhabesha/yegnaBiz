@@ -120,11 +120,32 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply relative min-h-screen bg-background text-foreground antialiased;
   }
 }
 
 @layer components {
+  .text-glow {
+    text-shadow: 0 12px 48px rgba(79, 70, 229, 0.25);
+  }
+
+  .section-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.05), transparent 60%);
+    pointer-events: none;
+  }
+
+  .floating-element {
+    animation: float 6s ease-in-out infinite;
+  }
+
   .container {
     width: 100%;
     margin-left: auto;
@@ -163,5 +184,15 @@
     .container {
       max-width: 1536px;
     }
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
   }
 }

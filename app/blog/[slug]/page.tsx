@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users, ChevronLeft } from '@/components/icons'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { PageHero } from '@/components/page-hero'
+import { PageSection } from '@/components/page-section'
 
 interface BlogPost {
   id: string
@@ -291,51 +293,52 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
       <Header />
 
       <main className="flex-1">
-        <article className="py-20">
-          <div className="container max-w-4xl">
-            {/* Back button */}
-            <div className="mb-8">
+        <PageHero
+          align="start"
+          eyebrow={post.category}
+          title={post.title}
+          description={post.excerpt}
+          actions={
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link href="/blog">
-                <Button variant="outline" className="glass-effect hover:bg-primary/10">
-                  <ChevronLeft className="mr-2 h-4 w-4" />
-                  Back to Blog
+                <Button variant="outline" className="rounded-full border-white/30 text-white">
+                  <ChevronLeft className="mr-2 h-4 w-4" /> Back to Blog
                 </Button>
               </Link>
-            </div>
-
-            {/* Article header */}
-            <header className="mb-12">
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary">{post.category}</Badge>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{new Date(post.date).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>{post.readTime}</span>
-                </div>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
+                <span className="inline-flex items-center gap-2">
+                  <Calendar className="h-4 w-4" /> {new Date(post.date).toLocaleDateString()}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Clock className="h-4 w-4" /> {post.readTime}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Users className="h-4 w-4" /> {post.author}
+                </span>
               </div>
-
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                {post.title}
-              </h1>
-
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-muted-foreground" />
-                <span className="text-muted-foreground">By {post.author}</span>
-              </div>
-            </header>
-
-            {/* Article content */}
-            <div className="prose prose-lg max-w-none">
-              <div
-                className="whitespace-pre-line leading-relaxed text-muted-foreground"
-                dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br>') }}
-              />
             </div>
-          </div>
-        </article>
+          }
+        />
+
+        <PageSection tone="default" className="py-12">
+          <article className="mx-auto max-w-4xl space-y-12">
+            <Card className="border-white/10 bg-background/70">
+              <CardContent className="prose prose-lg max-w-none pt-8 text-muted-foreground">
+                <div dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br>') }} />
+              </CardContent>
+            </Card>
+
+            <Card className="border-white/10 bg-background/70">
+              <CardContent className="flex flex-col gap-6 pt-8 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">አማርኛ ዝርዝር</h2>
+                  <p className="text-sm text-muted-foreground">የዚህ ጽሑፍ አማርኛ ቅጂ በቅርቡ ይጨመር።</p>
+                </div>
+                <Badge variant="secondary" className="self-start">Coming Soon</Badge>
+              </CardContent>
+            </Card>
+          </article>
+        </PageSection>
       </main>
 
       <Footer />

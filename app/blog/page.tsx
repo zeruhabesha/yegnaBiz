@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users } from '@/components/icons'
 import Link from 'next/link'
+import { PageHero } from '@/components/page-hero'
+import { PageSection } from '@/components/page-section'
 
 export const metadata: Metadata = {
   title: 'Blog - YegnaBiz',
@@ -73,77 +75,65 @@ export default function BlogPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10">
-          <div className="container">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                YegnaBiz
-                <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Blog
-                </span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Insights, trends, and stories about Ethiopian businesses and entrepreneurship
-              </p>
-            </div>
-          </div>
-        </section>
+        <PageHero
+          eyebrow="Insights"
+          title={
+            <>
+              YegnaBiz <span className="block">Blog</span>
+            </>
+          }
+          description="Stories, data, and expert perspectives shaping Ethiopia's business landscape."
+        />
 
-        {/* Blog Posts */}
-        <section className="py-20">
-          <div className="container">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {blogPosts.map((post, index) => (
-                <Card key={post.id} className="group card-hover animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                  <CardHeader className="p-0">
-                    <div className="aspect-video bg-gradient-to-br from-primary/10 to-accent/10 rounded-t-xl overflow-hidden">
-                      <div className="w-full h-full bg-muted/20 flex items-center justify-center">
-                        <span className="text-muted-foreground">Blog Image</span>
-                      </div>
+        <PageSection tone="default">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {blogPosts.map((post, index) => (
+              <Card key={post.id} className="group card-hover animate-fade-in" style={{ animationDelay: `${index * 120}ms` }}>
+                <CardHeader className="p-0">
+                  <div className="aspect-video overflow-hidden rounded-t-2xl bg-gradient-to-br from-primary/10 via-accent/10 to-secondary/10">
+                    <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+                      Featured Insight
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 p-6">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{post.category}</Badge>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(post.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="mb-2 text-xl font-semibold transition-colors group-hover:text-primary">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-white/10 pt-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{post.category}</Badge>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(post.date).toLocaleDateString()}</span>
-                      </div>
+                      <Users className="h-4 w-4" />
+                      <span>{post.author}</span>
                     </div>
-
-                    <div>
-                      <h3 className="font-bold text-xl mb-2 group-hover:text-primary transition-colors">
-                        {post.title}
-                      </h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {post.excerpt}
-                      </p>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{post.readTime}</span>
                     </div>
+                  </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{post.author}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{post.readTime}</span>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm transition-colors"
-                    >
-                      Read More →
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="inline-flex items-center text-primary hover:text-primary/80"
+                  >
+                    Read More →
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </section>
+        </PageSection>
       </main>
 
       <Footer />

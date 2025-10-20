@@ -1,4 +1,48 @@
 /** @type {import('next').NextConfig} */
+class EnsureSwcVendorChunkPlugin {
+  constructor(webpack) {
+    this.webpack = webpack
+  }
+
+  apply(compiler) {
+    if (compiler.options.name && !compiler.options.name.includes('server')) {
+      return
+    }
+
+    const {
+      Compilation,
+      sources: { RawSource },
+    } = this.webpack
+
+    compiler.hooks.thisCompilation.tap('EnsureSwcVendorChunkPlugin', (compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: 'EnsureSwcVendorChunkPlugin',
+          stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
+        },
+        () => {
+          const assets = [
+            {
+              file: 'vendor-chunks/@swc.js',
+              contents: "'use strict';module.exports = require('@swc/helpers');",
+            },
+            {
+              file: 'vendor-chunks/@swc.mjs',
+              contents: "export * from '@swc/helpers';",
+            },
+          ]
+
+          for (const asset of assets) {
+            if (!compilation.getAsset(asset.file)) {
+              compilation.emitAsset(asset.file, new RawSource(asset.contents))
+            }
+          }
+        }
+      )
+    })
+  }
+}
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -48,6 +92,14 @@ const nextConfig = {
         headers: common,
       },
     ]
+  },
+  webpack(config, options) {
+    if (options.isServer) {
+      config.plugins = config.plugins || []
+      config.plugins.push(new EnsureSwcVendorChunkPlugin(options.webpack))
+    }
+
+    return config
   },
 }
 
