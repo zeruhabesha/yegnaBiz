@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteAdminCompany, getAdminCompanyById, updateAdminCompany } from '@/lib/data/companies'
+import { requireAdminForDynamic } from '@/lib/auth-middleware'
 
-// GET /api/admin/companies/[id] - Get single company
-export async function GET(
+// GET /api/admin/companies/[id] - Get single company (Admin only)
+export const GET = requireAdminForDynamic(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  user: any,
+  context: { params: { id: string } }
+) => {
   try {
-    const { id } = params
+    const { id } = context.params
 
     const company = await getAdminCompanyById(Number(id))
 
@@ -29,15 +31,16 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})
 
-// PUT /api/admin/companies/[id] - Update company
-export async function PUT(
+// PUT /api/admin/companies/[id] - Update company (Admin only)
+export const PUT = requireAdminForDynamic(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  user: any,
+  context: { params: { id: string } }
+) => {
   try {
-    const { id } = params
+    const { id } = context.params
     const body = await request.json()
     const {
       name, slug, description, category, subcategory, email, phone, website,
@@ -86,15 +89,16 @@ export async function PUT(
       { status: 500 }
     )
   }
-}
+})
 
-// DELETE /api/admin/companies/[id] - Delete company
-export async function DELETE(
+// DELETE /api/admin/companies/[id] - Delete company (Admin only)
+export const DELETE = requireAdminForDynamic(async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  user: any,
+  context: { params: { id: string } }
+) => {
   try {
-    const { id } = params
+    const { id } = context.params
 
     // Check if company exists
     const deleted = await deleteAdminCompany(Number(id))
@@ -116,4 +120,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
+})

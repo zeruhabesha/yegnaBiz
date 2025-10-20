@@ -1,9 +1,1 @@
-[
-  { "companyId": 1, "platform": "facebook", "url": "https://facebook.com/ethiotech" },
-  { "companyId": 1, "platform": "linkedin", "url": "https://linkedin.com/company/ethiotech" },
-  { "companyId": 1, "platform": "twitter", "url": "https://twitter.com/ethiotech" },
-  { "companyId": 2, "platform": "facebook", "url": "https://facebook.com/nilelogistics" },
-  { "companyId": 2, "platform": "instagram", "url": "https://instagram.com/nilelogistics" },
-  { "companyId": 3, "platform": "facebook", "url": "https://facebook.com/awashfoods" },
-  { "companyId": 3, "platform": "instagram", "url": "https://instagram.com/awashfoods" }
-]
+[]

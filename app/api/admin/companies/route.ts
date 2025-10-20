@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminCompany, listAdminCompanies } from '@/lib/data/companies'
+import { verifyToken, requireAdmin } from '@/lib/auth-middleware'
 
-// GET /api/admin/companies - Get all companies with filtering
-export async function GET(request: NextRequest) {
+// GET /api/admin/companies - Get all companies with filtering (Admin only)
+export const GET = requireAdmin(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-// POST /api/admin/companies - Create new company
-export async function POST(request: NextRequest) {
+// POST /api/admin/companies - Create new company (Admin only)
+export const POST = requireAdmin(async (request: NextRequest) => {
   try {
     const body = await request.json()
     const {
@@ -79,4 +80,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

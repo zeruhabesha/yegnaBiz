@@ -25,48 +25,128 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    // Check for stored token and validate it
+    const token = localStorage.getItem("auth_token")
+    if (token) {
+      validateToken(token)
+    } else {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
-    // Mock authentication - in production, this would call an API
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  const validateToken = async (token: string) => {
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
 
-    // Mock user data
-    const mockUser: User = {
-      id: 1,
-      email,
-      fullName: "Demo User",
-      role: email.includes("admin") ? "admin" : "user",
+      if (response.ok) {
+        const data = await response.json()
+        setUser({
+          id: data.user.id,
+          email: data.user.email,
+          fullName: data.user.full_name,
+          role: data.user.role,
+        })
+      } else {
+        // Token is invalid, remove it
+        localStorage.removeItem("auth_token")
+      }
+    } catch (error) {
+      console.error('Token validation error:', error)
+      localStorage.removeItem("auth_token")
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    setUser(mockUser)
-    localStorage.setItem("user", JSON.stringify(mockUser))
+  const login = async (email: string, password: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'login',
+          email,
+          password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
+      }
+
+      // Store token and user data
+      localStorage.setItem("auth_token", data.token)
+      setUser({
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.full_name,
+        role: data.user.role,
+      })
+    } catch (error) {
+      setIsLoading(false)
+      throw error
+    }
+    setIsLoading(false)
   }
 
   const register = async (email: string, password: string, fullName: string) => {
-    // Mock registration - in production, this would call an API
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'register',
+          full_name: fullName,
+          email,
+          password,
+        }),
+      })
 
-    const mockUser: User = {
-      id: Date.now(),
-      email,
-      fullName,
-      role: "user",
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed')
+      }
+
+      // Store token and user data
+      localStorage.setItem("auth_token", data.token)
+      setUser({
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.full_name,
+        role: data.user.role,
+      })
+    } catch (error) {
+      setIsLoading(false)
+      throw error
     }
-
-    setUser(mockUser)
-    localStorage.setItem("user", JSON.stringify(mockUser))
+    setIsLoading(false)
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("user")
+    localStorage.removeItem("auth_token")
+    // Also call logout endpoint to clean up any server-side state
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'logout' }),
+    }).catch(console.error)
   }
 
   return <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>{children}</AuthContext.Provider>

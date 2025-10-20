@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'crypto'
+import bcrypt from 'bcryptjs'
 import type { AdminUser } from '@/lib/types/admin'
 import { readJsonFile, writeJsonFile } from '@/lib/data/json-store'
 
@@ -9,12 +9,6 @@ type StoredAdminUser = AdminUser & { password_hash: string }
 function mapStoredUser(user: StoredAdminUser): AdminUser {
   const { password_hash: _password, ...rest } = user
   return rest
-}
-
-function hashPassword(password: string) {
-  const salt = randomBytes(8).toString('hex')
-  const hash = createHash('sha256').update(password + salt).digest('hex')
-  return `${salt}:${hash}`
 }
 
 async function readAdminUsers(): Promise<StoredAdminUser[]> {
@@ -61,10 +55,16 @@ export async function getAdminUserById(id: number): Promise<AdminUser | undefine
   return user ? mapStoredUser(user) : undefined
 }
 
+export async function getAdminUserByEmail(email: string): Promise<AdminUser | undefined> {
+  const users = await readAdminUsers()
+  const user = users.find((item) => item.email === email)
+  return user ? mapStoredUser(user) : undefined
+}
+
 export async function createAdminUser(data: {
-  full_name?: string
-  email?: string
-  password?: string
+  full_name: string
+  email: string
+  password: string
   role?: string
   phone?: string
   location?: string
@@ -74,8 +74,17 @@ export async function createAdminUser(data: {
   }
 
   const users = await readAdminUsers()
+
+  // Check if user already exists
+  const existingUser = users.find((user) => user.email === data.email)
+  if (existingUser) {
+    throw new Error('User already exists')
+  }
+
   const nextId = users.reduce((max, user) => Math.max(max, user.id), 0) + 1
   const timestamp = new Date().toISOString()
+
+  const hashedPassword = await bcrypt.hash(data.password, 10)
 
   const stored: StoredAdminUser = {
     id: nextId,
@@ -87,7 +96,7 @@ export async function createAdminUser(data: {
     location: data.location,
     created_at: timestamp,
     updated_at: timestamp,
-    password_hash: hashPassword(data.password),
+    password_hash: hashedPassword,
   }
 
   users.push(stored)
@@ -124,4 +133,20 @@ export async function deleteAdminUser(id: number): Promise<boolean> {
   users.splice(index, 1)
   await writeAdminUsers(users)
   return true
+}
+
+export async function authenticateUser(email: string, password: string): Promise<AdminUser | null> {
+  const users = await readAdminUsers()
+  const user = users.find((item) => item.email === email)
+
+  if (!user) {
+    return null
+  }
+
+  const isValidPassword = await bcrypt.compare(password, user.password_hash)
+  if (!isValidPassword) {
+    return null
+  }
+
+  return mapStoredUser(user)
 }

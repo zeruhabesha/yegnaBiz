@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
+import { LanguageProvider } from "@/lib/language-context"
 import { PromoWrapper } from "@/components/promo-wrapper"
 
 export const metadata: Metadata = {
@@ -18,10 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="antialiased">
       <body className="font-sans">
-        <AuthProvider>
-          <PromoWrapper />
-          {children}
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <PromoWrapper />
+            {children}
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   )
