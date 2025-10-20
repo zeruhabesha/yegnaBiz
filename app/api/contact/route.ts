@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import nodemailer from 'nodemailer'
+import type { Transporter } from 'nodemailer'
 
 // Simple in-memory rate limiting (per server instance)
 const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
@@ -85,15 +87,42 @@ export async function POST(request: Request) {
       }
     }
 
-    // Email configuration (placeholder)
-    const RECIPIENT_EMAIL = 'zeruhabesha09@gmail.com'
-    
-    // For now, log safely on the server and return success.
-    // Replace this with Resend/SendGrid/Nodemailer in production.
-    console.log('Contact message (sanitized):', { ...safe, to: RECIPIENT_EMAIL, ip })
+    const transporter = await getTransporter()
+    const RECIPIENT_EMAIL = process.env.CONTACT_RECIPIENT_EMAIL || 'zeruhabesha09@gmail.com'
+    const fromAddress = process.env.SMTP_FROM_EMAIL || `YegnaBiz <${process.env.SMTP_USER ?? 'no-reply@yegnabiz.com'}>`
+
+    const plainMessage = [
+      `New contact form submission from YegnaBiz`,
+      '',
+      `Name: ${safe.name}`,
+      `Email: ${safe.email}`,
+      `Subject: ${safe.subject}`,
+      '',
+      safe.message,
+      '',
+      `IP Address: ${ip}`,
+    ].join('\n')
+
+    const htmlMessage = `<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#1f2937;">
+      <h2 style="margin:0 0 16px;">New contact form submission</h2>
+      <p><strong>Name:</strong> ${safe.name}</p>
+      <p><strong>Email:</strong> ${safe.email}</p>
+      <p><strong>Subject:</strong> ${safe.subject}</p>
+      <p style="white-space:pre-line;margin-top:16px;">${safe.message}</p>
+      <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;" />
+      <p style="color:#6b7280;font-size:12px;">Submitted from IP: ${ip}</p>
+    </div>`
+
+    await transporter.sendMail({
+      from: fromAddress,
+      to: RECIPIENT_EMAIL,
+      subject: `[YegnaBiz Contact] ${safe.subject}`,
+      text: plainMessage,
+      html: htmlMessage,
+      replyTo: safe.email,
+    })
 
     return NextResponse.json({ success: true, message: 'Message received. We will get back to you shortly.' })
-
   } catch (error) {
     console.error('Contact form error:', error)
     return NextResponse.json(
@@ -101,4 +130,37 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+}
+
+let cachedTransporter: Transporter | null = null
+
+async function getTransporter(): Promise<Transporter> {
+  if (cachedTransporter) {
+    return cachedTransporter
+  }
+
+  const host = process.env.SMTP_HOST
+  const portString = process.env.SMTP_PORT
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+
+  if (!host || !portString) {
+    throw new Error('SMTP configuration is missing. Please set SMTP_HOST and SMTP_PORT environment variables.')
+  }
+
+  const port = Number(portString)
+  if (Number.isNaN(port)) {
+    throw new Error('SMTP_PORT must be a valid number.')
+  }
+
+  const secure = process.env.SMTP_SECURE === 'true' || port === 465
+
+  cachedTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: user && pass ? { user, pass } : undefined,
+  })
+
+  return cachedTransporter
 }

@@ -51,9 +51,8 @@ export default function ContactPage() {
       const data = await response.json()
 
       if (response.ok) {
-        alert("Thank you for contacting us! We'll get back to you soon at " + formData.email)
+        alert(data.message || "Thank you for contacting us! We'll get back to you soon.")
         setFormData({ name: "", email: "", subject: "", message: "" })
-        recaptchaRef.current?.reset()
       } else {
         alert(data.error || "Failed to send message. Please try again.")
       }
@@ -61,6 +60,9 @@ export default function ContactPage() {
       console.error('Error submitting form:', error)
       alert("An error occurred. Please try again or email us directly at zeruhabesha09@gmail.com")
     } finally {
+      if (recaptchaEnabled) {
+        recaptchaRef.current?.reset()
+      }
       setIsSubmitting(false)
     }
   }

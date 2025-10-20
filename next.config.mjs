@@ -49,6 +49,30 @@ const nextConfig = {
       },
     ]
   },
+  webpack(config, { dev, isServer }) {
+    if (!dev && !isServer) {
+      if (typeof config.output?.filename === "string") {
+        config.output.filename = config.output.filename
+          .replace(/-\[chunkhash\]/g, "")
+          .replace(/\.\[contenthash\]/g, "");
+      }
+      if (typeof config.output?.chunkFilename === "string") {
+        config.output.chunkFilename = config.output.chunkFilename
+          .replace(/-\[chunkhash\]/g, "")
+          .replace(/\.\[contenthash\]/g, "");
+      }
+      config.plugins = config.plugins?.map((plugin) => {
+        if (plugin?.constructor?.name === "MiniCssExtractPlugin") {
+          if (plugin.options) {
+            plugin.options.filename = "static/css/[name].css";
+            plugin.options.chunkFilename = "static/css/[name].css";
+          }
+        }
+        return plugin;
+      });
+    }
+    return config;
+  },
 }
 
 export default nextConfig
