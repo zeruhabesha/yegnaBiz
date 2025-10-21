@@ -1,3 +1,4 @@
 import { expect } from 'vitest';
 
-global.expect = expect;
+// attach expect to the globalThis so tests can use it without importing
+(globalThis as any).expect = expect;

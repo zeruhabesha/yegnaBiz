@@ -38,6 +38,7 @@ export default function EditBusinessPage() {
   const [newTag, setNewTag] = useState("")
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [currentCompany, setCurrentCompany] = useState<Company | null>(null)
 
   // Redirect if not logged in
   useEffect(() => {
@@ -67,8 +68,8 @@ export default function EditBusinessPage() {
           throw new Error(companyJson.error || "Failed to load business details")
         }
 
-        const business: Company = companyJson.data.company
-        setCurrentCompany(business)
+  const business: Company = companyJson.data.company
+  setCurrentCompany(business)
         setFormData({
           name: business.name,
           category: business.category,
