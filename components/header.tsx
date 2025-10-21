@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Building2, Menu, X } from "@/components/icons"
+import Image from "next/image"
+import { Menu, X } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
 
@@ -15,8 +16,8 @@ export function Header() {
       <div className="container flex h-18 items-center justify-between">
         <Link href="/" className="flex flex-col items-start group">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Building2 className="h-7 w-7 text-primary group-hover:scale-110 transition-transform duration-200" />
+            <div className="relative h-7 w-7">
+              <Image src="/logo.svg" alt="YegnaBiz" width={28} height={28} className="group-hover:scale-110 transition-transform duration-200" />
               <div className="absolute inset-0 h-7 w-7 bg-primary/20 rounded-full blur-md group-hover:blur-lg transition-all duration-200"></div>
             </div>
             <div className="flex flex-col">

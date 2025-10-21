@@ -150,7 +150,7 @@ export function SearchHero() {
                 variant="outline"
                 size="sm"
                 onClick={() => router.push(`/companies?search=${encodeURIComponent(category.search)}`)}
-                className="border-white/30 text-white transition-all duration-200 hover:scale-105 hover:border-primary hover:bg-white/10"
+                className="border-white/30 text-blue transition-all duration-200 hover:scale-105 hover:border-primary hover:bg-white/10"
               >
                 {category.label}
               </Button>

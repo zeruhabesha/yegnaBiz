@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Building2 } from "@/components/icons"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -8,8 +8,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <Building2 className="h-7 w-7 text-primary group-hover:scale-110 transition-transform duration-200" />
+              <div className="relative h-7 w-7">
+                <Image src="/logo.svg" alt="YegnaBiz" width={28} height={28} className="group-hover:scale-110 transition-transform duration-200" />
                 <div className="absolute inset-0 h-7 w-7 bg-primary/20 rounded-full blur-md group-hover:blur-lg transition-all duration-200"></div>
               </div>
               <div className="flex flex-col">

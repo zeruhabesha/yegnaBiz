@@ -53,6 +53,37 @@ Run the command under a process manager such as systemd or PM2 and place a rever
 3. Trigger a deployment. Vercel will execute `npm install`, `npm run build`, and host the app on its Node.js runtime automatically.
 4. Remember that the JSON files under `data/` are **not persistent** on serverless platforms; switch to PostgreSQL or another managed store if you need durable writes.
 
+### 6.1 Using Prisma on Vercel
+
+- Add `DATABASE_URL` to your Vercel Project Environment Variables (both Preview and Production as needed). Use a managed Postgres provider (Neon, Supabase, ElephantSQL, RDS, etc.).
+- In the Vercel dashboard set the following build & runtime variables:
+   - `DATABASE_URL` (required when enabling Prisma)
+   - `JWT_SECRET`
+   - ReCAPTCHA keys and SMTP credentials
+
+- Recommended build command (Vercel Project settings):
+   - Build Command: `npm run build`
+   - Output Directory: (leave default)
+
+- Before your first deployment you can run migrations from your machine against the same database using:
+
+```bash
+# generate client & run dev migration locally
+npm install
+npm run prisma:generate
+npm run prisma:migrate:dev --name init
+```
+
+- To run migrations in CI (or on the server after build) use:
+
+```bash
+npm run prisma:deploy
+```
+
+- Use `npm run prisma:studio` to inspect your data locally.
+
+> Note: If you keep the JSON files as the source-of-truth, plan a one-time migration script to copy JSON records into the database tables. See the "Prepare Data" section below for guidance.
+
 ## 7. Deploying to Other Hosts
 1. Upload the repository (or CI build artifacts) to your server.
 2. Run the commands from sections 2–5 during provisioning.

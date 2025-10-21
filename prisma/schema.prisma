@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  fullName   String?
+  email      String   @unique
+  password   String?
+  role       String   @default("user")
+  phone      String?
+  location   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  companies  Company[] @relation("OwnerCompanies")
+  reviews    Review[]
+}
+
+model Company {
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  description   String?
+  category      String
+  subcategory   String?
+  city          String?
+  region        String?
+  country       String?
+  address       String?
+  email         String?
+  phone         String?
+  website       String?
+  isVerified    Boolean  @default(false)
+  isFeatured    Boolean  @default(false)
+  isPremium     Boolean  @default(false)
+  rating        Float?   
+  reviewCount   Int      @default(0)
+  viewCount     Int      @default(0)
+  establishedYear Int?
+  employeeCount Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  ownerId       Int?
+  owner         User?    @relation("OwnerCompanies", fields: [ownerId], references: [id])
+  reviews       Review[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId Int
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  Int?
+  title     String?
+  comment   String
+  rating    Int
+  createdAt DateTime @default(now())
+}
+
+model Promotion {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        String
+  status      String   @default("inactive")
+  isActive    Boolean  @default(false)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  budget      Float    @default(0)
+  spent       Float    @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

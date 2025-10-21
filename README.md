@@ -91,5 +91,22 @@ Examples provided in `env.example`.
 - Email sending in `app/api/contact/route.ts` is stubbed. Integrate Resend/SendGrid/Nodemailer for production.
 - Rate limiting is in-memory; use Redis in production.
 
+## Prisma Integration (optional)
+
+- This project defaults to file-based JSON data in `data/` for quick development. To migrate to a relational DB use Prisma + Postgres.
+- Added files:
+  - `prisma/schema.prisma` — initial schema (User, Company, Review, Promotion)
+  - `lib/prisma.ts` — Prisma client wrapper (singleton)
+- Quick start locally:
+
+```bash
+npm install
+npm run prisma:generate
+npm run prisma:migrate:dev --name init
+npm run prisma:studio
+```
+
+- Migration plan for existing data: write a small Node script that reads JSON files in `data/`, maps to Prisma models, and inserts via `lib/prisma.ts`. Keep `data/` as backup during migration.
+
 ## License
 Proprietary – All rights reserved.

@@ -20,6 +20,8 @@ import {
   Users,
 } from "@/components/icons"
 
+import TestimonialCarousel from '@/components/testimonial-carousel'
+
 export default async function HomePage() {
   const [featuredCompanies, stats] = await Promise.all([getFeaturedCompanies(6), getCompanyStats()])
 
@@ -202,11 +204,12 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="bg-muted/30 py-20">
-          <div className="container space-y-12">
+        <section className="relative py-20 bg-fixed bg-cover bg-center" style={{backgroundImage: "url('/hero-home.jpg')"}}>
+          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="container relative z-10 space-y-12">
             <div className="mx-auto max-w-2xl text-center space-y-4">
-              <h2 className="text-4xl font-bold tracking-tight md:text-5xl">How YegnaBiz keeps you ahead</h2>
-              <p className="text-lg text-muted-foreground">
+              <h2 className="text-white font-bold tracking-tight md:text-5xl">How YegnaBiz keeps you ahead</h2>
+              <p className="text-lg text-white text-muted-foreground">
                 From discovery to conversion, each step is designed to help Ethiopian businesses build lasting customer
                 relationships.
               </p>
@@ -266,18 +269,9 @@ export default async function HomePage() {
                 Hear how businesses are using YegnaBiz to gain traction and earn trusted relationships with customers.
               </p>
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map((testimonial) => (
-                <Card key={testimonial.name} className="border border-border/60 bg-card/80 backdrop-blur">
-                  <CardContent className="space-y-4 p-6">
-                    <p className="text-base leading-relaxed text-foreground">"{testimonial.quote}"</p>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-primary">{testimonial.name}</p>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{testimonial.role}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+            <div className="relative">
+              <TestimonialCarousel testimonials={testimonials} />
             </div>
           </div>
         </section>
@@ -287,13 +281,13 @@ export default async function HomePage() {
           <div className="container">
             <div className="grid gap-10 lg:grid-cols-[1.2fr,1fr] lg:items-center">
               <div className="space-y-6">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1 text-sm font-semibold text-white">
+                <span className="inline-flex items-center gap-2 rounded-full bg-blue/20 px-4 py-1 text-sm font-semibold text-blue">
                   Ready to launch
                 </span>
-                <h2 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
+                <h2 className="text-4xl font-bold tracking-tight text-blue-600 md:text-5xl">
                   Claim your space on the most trusted Ethiopian business directory
                 </h2>
-                <p className="text-lg text-white/80">
+                <p className="text-lg text-blue">
                   Showcase your services, build instant credibility, and keep customers engaged with timely updates and
                   promotions.
                 </p>
@@ -304,7 +298,7 @@ export default async function HomePage() {
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="border-white/60 text-white hover:bg-white/10">
+                  <Button asChild size="lg" variant="outline" className="border-white/60 text-blue hover:bg-white/10">
                     <Link href="/promote" className="font-semibold">
                       Explore promotion packages
                     </Link>
@@ -312,19 +306,19 @@ export default async function HomePage() {
                 </div>
               </div>
               <Card className="border border-white/40 bg-white/10 backdrop-blur">
-                <CardContent className="space-y-4 p-6 text-white">
+                <CardContent className="space-y-4 p-6 text-blue">
                   <h3 className="text-xl font-semibold">Why premium listings convert better</h3>
-                  <ul className="space-y-3 text-sm text-white/80">
+                  <ul className="space-y-3 text-sm text-blue">
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="mt-0.5 h-4 w-4 text-white" />
+                      <CheckCircle className="mt-0.5 h-4 w-4 text-blue" />
                       <span>Priority placement on search results and category pages.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="mt-0.5 h-4 w-4 text-white" />
+                      <CheckCircle className="mt-0.5 h-4 w-4 text-blue" />
                       <span>Dedicated analytics showing profile views and engagement.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="mt-0.5 h-4 w-4 text-white" />
+                      <CheckCircle className="mt-0.5 h-4 w-4 text-blue" />
                       <span>Advanced media gallery to showcase projects, menus, or services.</span>
                     </li>
                   </ul>
