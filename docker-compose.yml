@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+    image: yegnabiz/app:latest
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      - mailhog
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+      - "1025:1025"
+    restart: unless-stopped

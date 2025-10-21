@@ -35,6 +35,12 @@ RECAPTCHA_SECRET_KEY=your_secret_key_here
 
 Examples provided in `env.example`.
 
+## Deployment
+- Review the step-by-step [Deployment Guide](./DEPLOYMENT_GUIDE.md) for production configuration, build, and hosting options.
+- Use `npm run setup-admin` before shipping to generate hashed admin credentials in `data/admin-users.json`.
+- Run `npm run build` followed by `npm run start` (or deploy via Vercel) with your production environment variables in place.
+- Prefer containers? Copy `.env.docker.example` to `.env.docker`, run `docker compose run --rm app npm run setup-admin`, then `docker compose up -d --build` to launch the frontend, API routes, and MailHog test SMTP in one command.
+
 ## Key Paths
 - App layout: `app/layout.tsx`
 - Home: `app/page.tsx`
