@@ -35,6 +35,19 @@ RECAPTCHA_SECRET_KEY=your_secret_key_here
 
 Examples provided in `env.example`.
 
+## Deployment
+- Read the [Deployment Guide](./DEPLOYMENT_GUIDE.md) for a full checklist covering secrets, build steps, hosting targets, and post-deploy checks.
+- **Docker quick start:**
+  1. `cp .env.docker.example .env.docker`
+  2. `docker compose run --rm app npm run setup-admin`
+  3. `docker compose up -d --build`
+  4. Visit `http://localhost:3000` (app) and `http://localhost:8025` (MailHog)
+- **Traditional Node host:**
+  1. Copy `env.example` to `.env.production` (or configure host secrets)
+  2. `npm install && npm run build`
+  3. `npm run start -- --hostname 0.0.0.0 --port ${PORT:-3000}`
+  4. Place a reverse proxy (Nginx/Caddy) in front and persist the `data/` directory or configure PostgreSQL.
+
 ## Key Paths
 - App layout: `app/layout.tsx`
 - Home: `app/page.tsx`
