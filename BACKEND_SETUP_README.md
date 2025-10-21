@@ -8,6 +8,8 @@
 
 ## 🗄️ Database Setup
 
+> 💡 **Tip:** Export `DATABASE_URL` and run `npm run seed` to let the project create the tables and starter data automatically. The command detects your environment, works with PostgreSQL or the bundled JSON files, and can be re-run safely.
+
 ### Option 1: Native PostgreSQL Installation
 
 1. **Install PostgreSQL 15+**

@@ -1,12 +1,71 @@
 import type { AdminCompany } from '@/lib/types/admin'
 import type { BusinessHour, Company, Review, SocialLink } from '@/lib/types/company'
 import { readJsonFile, writeJsonFile } from '@/lib/data/json-store'
+import { dbQuery, isDatabaseEnabled } from '@/lib/data/database'
 
 const PUBLIC_COMPANIES_FILE = 'companies.json'
 const ADMIN_COMPANIES_FILE = 'admin-companies.json'
 const REVIEWS_FILE = 'reviews.json'
 const SOCIAL_LINKS_FILE = 'social-links.json'
 const BUSINESS_HOURS_FILE = 'business-hours.json'
+
+const useDatabase = isDatabaseEnabled()
+
+interface CompanyRow {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+  category: string
+  subcategory: string | null
+  email: string | null
+  phone: string | null
+  website: string | null
+  address: string | null
+  city: string | null
+  region: string | null
+  country: string | null
+  latitude: string | null
+  longitude: string | null
+  established_year: number | null
+  employee_count: string | null
+  is_verified: boolean
+  is_featured: boolean
+  is_premium: boolean
+  status: string
+  rating: string | null
+  review_count: number
+  view_count: number
+  created_at: Date
+  updated_at: Date
+  logo_url: string | null
+  cover_image_url: string | null
+}
+
+interface ReviewRow {
+  id: number
+  company_id: number
+  user_name: string
+  title: string | null
+  comment: string | null
+  rating: number
+  is_verified: boolean
+  created_at: Date
+}
+
+interface SocialLinkRow {
+  company_id: number
+  platform: string
+  url: string
+}
+
+interface BusinessHourRow {
+  company_id: number
+  day_of_week: number
+  open_time: string | null
+  close_time: string | null
+  is_closed: boolean
+}
 
 function normalizeStatus(status?: string): Company['status'] {
   const allowed: Company['status'][] = ['active', 'pending', 'suspended', 'rejected']
@@ -39,12 +98,49 @@ function mapAdminToPublicCompany(adminCompany: AdminCompany, previous?: Company)
     establishedYear: adminCompany.established_year,
     employeeCount: adminCompany.employee_count ?? undefined,
     status: normalizeStatus(adminCompany.status),
-    coverImageUrl: previous?.coverImageUrl ?? '/hero-companies.jpg',
-    logoUrl: previous?.logoUrl ?? '/placeholder-logo.png',
+    coverImageUrl: adminCompany.cover_image_url ?? previous?.coverImageUrl ?? '/hero-companies.jpg',
+    logoUrl: adminCompany.logo_url ?? previous?.logoUrl ?? '/placeholder-logo.png',
   }
 }
 
-async function readPublicCompanies(): Promise<Company[]> {
+function mapRowToAdminCompany(row: CompanyRow): AdminCompany {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description ?? undefined,
+    category: row.category,
+    subcategory: row.subcategory ?? undefined,
+    email: row.email ?? undefined,
+    phone: row.phone ?? undefined,
+    website: row.website ?? undefined,
+    address: row.address ?? undefined,
+    city: row.city ?? '',
+    region: row.region ?? '',
+    country: row.country ?? 'Ethiopia',
+    latitude: row.latitude ? Number(row.latitude) : undefined,
+    longitude: row.longitude ? Number(row.longitude) : undefined,
+    established_year: row.established_year ?? undefined,
+    employee_count: row.employee_count ?? undefined,
+    is_verified: row.is_verified,
+    is_featured: row.is_featured,
+    is_premium: row.is_premium,
+    status: row.status,
+    rating: row.rating ? Number(row.rating) : 0,
+    review_count: row.review_count,
+    view_count: row.view_count,
+    created_at: row.created_at.toISOString(),
+    updated_at: row.updated_at.toISOString(),
+    logo_url: row.logo_url ?? undefined,
+    cover_image_url: row.cover_image_url ?? undefined,
+  }
+}
+
+function mapRowToPublicCompany(row: CompanyRow, previous?: Company): Company {
+  return mapAdminToPublicCompany(mapRowToAdminCompany(row), previous)
+}
+
+async function readPublicCompaniesFromFile(): Promise<Company[]> {
   try {
     return await readJsonFile<Company[]>(PUBLIC_COMPANIES_FILE)
   } catch (error) {
@@ -59,7 +155,7 @@ async function writePublicCompanies(companies: Company[]) {
   await writeJsonFile(PUBLIC_COMPANIES_FILE, companies)
 }
 
-async function readAdminCompanies(): Promise<AdminCompany[]> {
+async function readAdminCompaniesFromFile(): Promise<AdminCompany[]> {
   try {
     return await readJsonFile<AdminCompany[]>(ADMIN_COMPANIES_FILE)
   } catch (error) {
@@ -75,7 +171,11 @@ async function writeAdminCompanies(companies: AdminCompany[]) {
 }
 
 async function syncPublicCompanies(adminCompanies: AdminCompany[]) {
-  const existing = await readPublicCompanies()
+  if (useDatabase) {
+    return
+  }
+
+  const existing = await readPublicCompaniesFromFile()
   const existingMap = new Map(existing.map((company) => [company.id, company]))
   const publicCompanies = adminCompanies.map((adminCompany) =>
     mapAdminToPublicCompany(adminCompany, existingMap.get(adminCompany.id)),
@@ -84,21 +184,81 @@ async function syncPublicCompanies(adminCompanies: AdminCompany[]) {
 }
 
 export async function getAllCompanies(): Promise<Company[]> {
-  return await readPublicCompanies()
+  if (useDatabase) {
+    const { rows } = await dbQuery<CompanyRow>(
+      `SELECT * FROM companies ORDER BY name ASC`,
+    )
+    return rows.map((row) => mapRowToPublicCompany(row))
+  }
+
+  return await readPublicCompaniesFromFile()
 }
 
 export async function getCompanyBySlug(slug: string): Promise<Company | undefined> {
-  const companies = await readPublicCompanies()
+  if (useDatabase) {
+    const { rows } = await dbQuery<CompanyRow>(
+      `SELECT * FROM companies WHERE slug = $1 LIMIT 1`,
+      [slug],
+    )
+    const row = rows[0]
+    return row ? mapRowToPublicCompany(row) : undefined
+  }
+
+  const companies = await readPublicCompaniesFromFile()
   return companies.find((company) => company.slug === slug)
 }
 
 export async function getFeaturedCompanies(limit = 6): Promise<Company[]> {
-  const companies = await readPublicCompanies()
+  if (useDatabase) {
+    const { rows } = await dbQuery<CompanyRow>(
+      `SELECT * FROM companies WHERE is_featured = true ORDER BY rating DESC NULLS LAST LIMIT $1`,
+      [limit],
+    )
+    return rows.map((row) => mapRowToPublicCompany(row))
+  }
+
+  const companies = await readPublicCompaniesFromFile()
   return companies.filter((company) => company.isFeatured).slice(0, limit)
 }
 
 export async function getCompanyStats() {
-  const companies = await readPublicCompanies()
+  if (useDatabase) {
+    const { rows } = await dbQuery<{
+      total: string
+      verified: string
+      featured: string
+      premium: string
+      total_reviews: string
+    }>(
+      `
+        SELECT
+          COUNT(*) AS total,
+          COUNT(*) FILTER (WHERE is_verified) AS verified,
+          COUNT(*) FILTER (WHERE is_featured) AS featured,
+          COUNT(*) FILTER (WHERE is_premium) AS premium,
+          COALESCE(SUM(review_count), 0) AS total_reviews
+        FROM companies
+      `,
+    )
+
+    const stats = rows[0] ?? {
+      total: '0',
+      verified: '0',
+      featured: '0',
+      premium: '0',
+      total_reviews: '0',
+    }
+
+    return {
+      total: Number(stats.total),
+      verified: Number(stats.verified),
+      featured: Number(stats.featured),
+      premium: Number(stats.premium),
+      totalReviews: Number(stats.total_reviews),
+    }
+  }
+
+  const companies = await readPublicCompaniesFromFile()
   const total = companies.length
   const verified = companies.filter((company) => company.isVerified).length
   const featured = companies.filter((company) => company.isFeatured).length
@@ -109,7 +269,14 @@ export async function getCompanyStats() {
 }
 
 export async function getCategoryCounts() {
-  const companies = await readPublicCompanies()
+  if (useDatabase) {
+    const { rows } = await dbQuery<{ name: string; count: string }>(
+      `SELECT category AS name, COUNT(*) AS count FROM companies GROUP BY category ORDER BY category ASC`,
+    )
+    return rows.map((row) => ({ name: row.name, count: Number(row.count) }))
+  }
+
+  const companies = await readPublicCompaniesFromFile()
   const categoryMap = new Map<string, number>()
 
   for (const company of companies) {
@@ -130,7 +297,6 @@ export async function getCompaniesByFilters(params: {
   featuredOnly?: boolean
   sortBy?: string
 }): Promise<Company[]> {
-  const companies = await readPublicCompanies()
   const {
     search,
     location,
@@ -140,6 +306,64 @@ export async function getCompaniesByFilters(params: {
     featuredOnly = false,
     sortBy = 'relevance',
   } = params
+
+  if (useDatabase) {
+    const conditions: string[] = []
+    const values: unknown[] = []
+
+    if (search) {
+      values.push(`%${search}%`)
+      const idx = values.length
+      conditions.push(`(name ILIKE $${idx} OR description ILIKE $${idx} OR category ILIKE $${idx} OR subcategory ILIKE $${idx})`)
+    }
+
+    if (location) {
+      values.push(`%${location}%`)
+      const idx = values.length
+      conditions.push(`(city ILIKE $${idx} OR region ILIKE $${idx} OR address ILIKE $${idx})`)
+    }
+
+    if (categories.length > 0) {
+      values.push(categories)
+      conditions.push(`category = ANY($${values.length}::text[])`)
+    }
+
+    if (cities.length > 0) {
+      values.push(cities)
+      conditions.push(`city = ANY($${values.length}::text[])`)
+    }
+
+    if (verifiedOnly) {
+      conditions.push(`is_verified = true`)
+    }
+
+    if (featuredOnly) {
+      conditions.push(`is_featured = true`)
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    let orderBy = 'ORDER BY is_featured DESC, rating DESC NULLS LAST'
+    switch (sortBy) {
+      case 'rating':
+        orderBy = 'ORDER BY rating DESC NULLS LAST'
+        break
+      case 'reviews':
+        orderBy = 'ORDER BY review_count DESC'
+        break
+      case 'newest':
+        orderBy = 'ORDER BY created_at DESC'
+        break
+      default:
+        orderBy = 'ORDER BY is_featured DESC, rating DESC NULLS LAST'
+    }
+
+    const query = `SELECT * FROM companies ${where} ${orderBy}`
+    const { rows } = await dbQuery<CompanyRow>(query, values)
+    return rows.map((row) => mapRowToPublicCompany(row))
+  }
+
+  const companies = await readPublicCompaniesFromFile()
 
   let filtered = [...companies]
 
@@ -202,6 +426,29 @@ export async function getCompaniesByFilters(params: {
 }
 
 export async function getReviewsForCompany(companyId: number): Promise<Review[]> {
+  if (useDatabase) {
+    const { rows } = await dbQuery<ReviewRow>(
+      `
+        SELECT id, company_id, user_name, title, comment, rating, is_verified, created_at
+        FROM reviews
+        WHERE company_id = $1
+        ORDER BY created_at DESC
+      `,
+      [companyId],
+    )
+
+    return rows.map((row) => ({
+      id: row.id,
+      companyId: row.company_id,
+      userName: row.user_name,
+      title: row.title ?? '',
+      comment: row.comment ?? '',
+      rating: row.rating,
+      createdAt: row.created_at.toISOString(),
+      isVerified: row.is_verified,
+    }))
+  }
+
   try {
     const reviews = await readJsonFile<Review[]>(REVIEWS_FILE)
     return reviews.filter((review) => review.companyId === companyId)
@@ -214,6 +461,23 @@ export async function getReviewsForCompany(companyId: number): Promise<Review[]>
 }
 
 export async function getAllReviews(): Promise<Review[]> {
+  if (useDatabase) {
+    const { rows } = await dbQuery<ReviewRow>(
+      `SELECT id, company_id, user_name, title, comment, rating, is_verified, created_at FROM reviews ORDER BY created_at DESC`,
+    )
+
+    return rows.map((row) => ({
+      id: row.id,
+      companyId: row.company_id,
+      userName: row.user_name,
+      title: row.title ?? '',
+      comment: row.comment ?? '',
+      rating: row.rating,
+      createdAt: row.created_at.toISOString(),
+      isVerified: row.is_verified,
+    }))
+  }
+
   try {
     return await readJsonFile<Review[]>(REVIEWS_FILE)
   } catch (error) {
@@ -225,6 +489,19 @@ export async function getAllReviews(): Promise<Review[]> {
 }
 
 export async function getSocialLinksForCompany(companyId: number): Promise<SocialLink[]> {
+  if (useDatabase) {
+    const { rows } = await dbQuery<SocialLinkRow>(
+      `SELECT company_id, platform, url FROM social_links WHERE company_id = $1`,
+      [companyId],
+    )
+
+    return rows.map((row) => ({
+      companyId: row.company_id,
+      platform: row.platform as SocialLink['platform'],
+      url: row.url,
+    }))
+  }
+
   try {
     const links = await readJsonFile<SocialLink[]>(SOCIAL_LINKS_FILE)
     return links.filter((link) => link.companyId === companyId)
@@ -237,6 +514,26 @@ export async function getSocialLinksForCompany(companyId: number): Promise<Socia
 }
 
 export async function getBusinessHoursForCompany(companyId: number): Promise<BusinessHour[]> {
+  if (useDatabase) {
+    const { rows } = await dbQuery<BusinessHourRow>(
+      `
+        SELECT company_id, day_of_week, open_time, close_time, is_closed
+        FROM business_hours
+        WHERE company_id = $1
+        ORDER BY day_of_week ASC
+      `,
+      [companyId],
+    )
+
+    return rows.map((row) => ({
+      companyId: row.company_id,
+      dayOfWeek: row.day_of_week,
+      openTime: row.open_time ?? '',
+      closeTime: row.close_time ?? '',
+      isClosed: row.is_closed,
+    }))
+  }
+
   try {
     const hours = await readJsonFile<BusinessHour[]>(BUSINESS_HOURS_FILE)
     return hours.filter((entry) => entry.companyId === companyId)
@@ -257,7 +554,33 @@ export async function listAdminCompanies({
   status?: string
   category?: string
 }): Promise<AdminCompany[]> {
-  const companies = await readAdminCompanies()
+  if (useDatabase) {
+    const conditions: string[] = []
+    const values: unknown[] = []
+
+    if (search) {
+      values.push(`%${search}%`)
+      const idx = values.length
+      conditions.push(`(name ILIKE $${idx} OR city ILIKE $${idx} OR region ILIKE $${idx})`)
+    }
+
+    if (status && status !== 'all') {
+      values.push(status)
+      conditions.push(`status = $${values.length}`)
+    }
+
+    if (category && category !== 'all') {
+      values.push(category)
+      conditions.push(`category = $${values.length}`)
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const query = `SELECT * FROM companies ${where} ORDER BY created_at DESC`
+    const { rows } = await dbQuery<CompanyRow>(query, values)
+    return rows.map((row) => mapRowToAdminCompany(row))
+  }
+
+  const companies = await readAdminCompaniesFromFile()
 
   return companies.filter((company) => {
     const matchesSearch = search
@@ -271,18 +594,74 @@ export async function listAdminCompanies({
 }
 
 export async function getAdminCompanyById(id: number): Promise<AdminCompany | undefined> {
-  const companies = await readAdminCompanies()
+  if (useDatabase) {
+    const { rows } = await dbQuery<CompanyRow>(`SELECT * FROM companies WHERE id = $1`, [id])
+    const row = rows[0]
+    return row ? mapRowToAdminCompany(row) : undefined
+  }
+
+  const companies = await readAdminCompaniesFromFile()
   return companies.find((company) => company.id === id)
 }
 
 export async function createAdminCompany(data: Partial<AdminCompany>): Promise<AdminCompany> {
-  const companies = await readAdminCompanies()
-  const nextId = companies.reduce((max, company) => Math.max(max, company.id), 0) + 1
-  const timestamp = new Date().toISOString()
-
   if (!data.name || !data.slug || !data.category) {
     throw new Error('Missing required fields')
   }
+
+  if (useDatabase) {
+    const { rows } = await dbQuery<CompanyRow>(
+      `
+        INSERT INTO companies (
+          name, slug, description, category, subcategory, email, phone, website, address,
+          city, region, country, latitude, longitude, established_year, employee_count,
+          is_verified, is_featured, is_premium, status, rating, review_count, view_count,
+          logo_url, cover_image_url
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9,
+          $10, $11, $12, $13, $14, $15, $16,
+          $17, $18, $19, $20, $21, $22, $23,
+          $24, $25
+        )
+        RETURNING *
+      `,
+      [
+        data.name,
+        data.slug,
+        data.description ?? null,
+        data.category,
+        data.subcategory ?? null,
+        data.email ?? null,
+        data.phone ?? null,
+        data.website ?? null,
+        data.address ?? null,
+        data.city ?? null,
+        data.region ?? null,
+        data.country ?? 'Ethiopia',
+        data.latitude ?? null,
+        data.longitude ?? null,
+        data.established_year ?? null,
+        data.employee_count ?? null,
+        data.is_verified ?? false,
+        data.is_featured ?? false,
+        data.is_premium ?? false,
+        data.status ?? 'active',
+        data.rating ?? 0,
+        data.review_count ?? 0,
+        data.view_count ?? 0,
+        data.logo_url ?? null,
+        data.cover_image_url ?? null,
+      ],
+    )
+
+    const row = rows[0]
+    return mapRowToAdminCompany(row)
+  }
+
+  const companies = await readAdminCompaniesFromFile()
+  const nextId = companies.reduce((max, company) => Math.max(max, company.id), 0) + 1
+  const timestamp = new Date().toISOString()
 
   const adminCompany: AdminCompany = {
     id: nextId,
@@ -311,6 +690,8 @@ export async function createAdminCompany(data: Partial<AdminCompany>): Promise<A
     view_count: data.view_count ?? 0,
     created_at: timestamp,
     updated_at: timestamp,
+    logo_url: data.logo_url,
+    cover_image_url: data.cover_image_url,
   }
 
   companies.push(adminCompany)
@@ -321,7 +702,63 @@ export async function createAdminCompany(data: Partial<AdminCompany>): Promise<A
 }
 
 export async function updateAdminCompany(id: number, updates: Partial<AdminCompany>): Promise<AdminCompany | undefined> {
-  const companies = await readAdminCompanies()
+  if (useDatabase) {
+    const fields: string[] = []
+    const values: unknown[] = []
+
+    const mapping: Array<[keyof AdminCompany, string]> = [
+      ['name', 'name'],
+      ['slug', 'slug'],
+      ['description', 'description'],
+      ['category', 'category'],
+      ['subcategory', 'subcategory'],
+      ['email', 'email'],
+      ['phone', 'phone'],
+      ['website', 'website'],
+      ['address', 'address'],
+      ['city', 'city'],
+      ['region', 'region'],
+      ['country', 'country'],
+      ['latitude', 'latitude'],
+      ['longitude', 'longitude'],
+      ['established_year', 'established_year'],
+      ['employee_count', 'employee_count'],
+      ['is_verified', 'is_verified'],
+      ['is_featured', 'is_featured'],
+      ['is_premium', 'is_premium'],
+      ['status', 'status'],
+      ['rating', 'rating'],
+      ['review_count', 'review_count'],
+      ['view_count', 'view_count'],
+      ['logo_url', 'logo_url'],
+      ['cover_image_url', 'cover_image_url'],
+    ]
+
+    for (const [key, column] of mapping) {
+      if (updates[key] !== undefined) {
+        values.push(updates[key])
+        fields.push(`${column} = $${values.length}`)
+      }
+    }
+
+    if (fields.length === 0) {
+      return await getAdminCompanyById(id)
+    }
+
+    values.push(id)
+    const query = `
+      UPDATE companies
+      SET ${fields.join(', ')}, updated_at = NOW()
+      WHERE id = $${values.length}
+      RETURNING *
+    `
+
+    const { rows } = await dbQuery<CompanyRow>(query, values)
+    const row = rows[0]
+    return row ? mapRowToAdminCompany(row) : undefined
+  }
+
+  const companies = await readAdminCompaniesFromFile()
   const index = companies.findIndex((company) => company.id === id)
   if (index === -1) {
     return undefined
@@ -341,7 +778,12 @@ export async function updateAdminCompany(id: number, updates: Partial<AdminCompa
 }
 
 export async function deleteAdminCompany(id: number): Promise<boolean> {
-  const companies = await readAdminCompanies()
+  if (useDatabase) {
+    const { rowCount } = await dbQuery('DELETE FROM companies WHERE id = $1', [id])
+    return rowCount > 0
+  }
+
+  const companies = await readAdminCompaniesFromFile()
   const index = companies.findIndex((company) => company.id === id)
   if (index === -1) {
     return false

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { readJsonFile, writeJsonFile } from '@/lib/data/json-store'
+import {
+  authenticateUser,
+  createAdminUser,
+  getAdminUserByEmail,
+  getAdminUserById,
+} from '@/lib/data/users'
 
-const USERS_FILE = 'admin-users.json'
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
 
 interface LoginRequest {
@@ -17,19 +20,6 @@ interface RegisterRequest {
   password: string
   phone?: string
   location?: string
-}
-
-async function readUsers() {
-  try {
-    return await readJsonFile<any[]>(USERS_FILE)
-  } catch (error) {
-    // Return empty array if file doesn't exist
-    return []
-  }
-}
-
-async function writeUsers(users: any[]) {
-  await writeJsonFile(USERS_FILE, users)
 }
 
 // POST /api/auth/login
@@ -68,16 +58,13 @@ export async function GET(request: NextRequest) {
     const token = authHeader.substring(7)
     const decoded = jwt.verify(token, JWT_SECRET) as any
 
-    const users = await readUsers()
-    const user = users.find((u: any) => u.id === decoded.userId)
+    const user = await getAdminUserById(decoded.userId)
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Return user without password
-    const { password_hash, ...userWithoutPassword } = user
-    return NextResponse.json({ user: userWithoutPassword })
+    return NextResponse.json({ user })
   } catch (error) {
     console.error('Get user error:', error)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -94,19 +81,9 @@ async function handleLogin(data: LoginRequest) {
     )
   }
 
-  const users = await readUsers()
-  const user = users.find((u: any) => u.email === email)
+  const user = await authenticateUser(email, password)
 
   if (!user) {
-    return NextResponse.json(
-      { error: 'Invalid credentials' },
-      { status: 401 }
-    )
-  }
-
-  // Verify password
-  const isValidPassword = await bcrypt.compare(password, user.password_hash)
-  if (!isValidPassword) {
     return NextResponse.json(
       { error: 'Invalid credentials' },
       { status: 401 }
@@ -132,10 +109,8 @@ async function handleLogin(data: LoginRequest) {
     { expiresIn: '7d' }
   )
 
-  // Return user without password and token
-  const { password_hash: _, ...userWithoutPassword } = user
   return NextResponse.json({
-    user: userWithoutPassword,
+    user,
     token,
     message: 'Login successful'
   })
@@ -151,10 +126,7 @@ async function handleRegister(data: RegisterRequest) {
     )
   }
 
-  const users = await readUsers()
-
-  // Check if user already exists
-  const existingUser = users.find((u: any) => u.email === email)
+  const existingUser = await getAdminUserByEmail(email)
   if (existingUser) {
     return NextResponse.json(
       { error: 'User already exists' },
@@ -162,25 +134,14 @@ async function handleRegister(data: RegisterRequest) {
     )
   }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10)
-
-  // Create new user
-  const newUser = {
-    id: Date.now(),
+  const newUser = await createAdminUser({
     full_name,
     email,
-    password_hash: hashedPassword,
-    role: 'user', // Default role
-    status: 'active',
-    phone: phone || null,
-    location: location || null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-
-  users.push(newUser)
-  await writeUsers(users)
+    password,
+    role: 'user',
+    phone,
+    location,
+  })
 
   // Generate JWT token
   const token = jwt.sign(
@@ -193,10 +154,8 @@ async function handleRegister(data: RegisterRequest) {
     { expiresIn: '7d' }
   )
 
-  // Return user without password and token
-  const { password_hash: _, ...userWithoutPassword } = newUser
   return NextResponse.json({
-    user: userWithoutPassword,
+    user: newUser,
     token,
     message: 'Registration successful'
   })

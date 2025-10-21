@@ -37,6 +37,8 @@ export interface AdminCompany {
   view_count: number
   created_at: string
   updated_at: string
+  logo_url?: string
+  cover_image_url?: string
 }
 
 export interface AdminPromotion {

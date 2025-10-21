@@ -11,6 +11,7 @@
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
+    "seed": "node scripts/seed-database.mjs",
     "setup-admin": "node setup-admin.mjs"
   },
   "dependencies": {

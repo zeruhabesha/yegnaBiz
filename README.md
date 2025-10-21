@@ -29,14 +29,31 @@ Create a `.env.local` file in the project root (same level as `package.json`).
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_site_key_here
 RECAPTCHA_SECRET_KEY=your_secret_key_here
 
-# Email provider (Optional – integrate later, e.g., Resend)
-# RESEND_API_KEY=your_api_key
+# Contact form SMTP configuration (required in production)
+CONTACT_RECIPIENT_EMAIL=support@yegnabiz.com
+SMTP_FROM_EMAIL=YegnaBiz <no-reply@yegnabiz.com>
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=smtp_username
+SMTP_PASS=smtp_password
+SMTP_SECURE=false
+
+# PostgreSQL (required on Vercel or any stateless host)
+# DATABASE_URL=postgresql://username:password@host:5432/yegnabiz
+# DATABASE_SSL=true
 ```
 
 Examples provided in `env.example`.
 
+> ℹ️ When `DATABASE_URL` is set the server automatically switches from the JSON files under `data/` to PostgreSQL for all admin routes.
+
 ## Deployment
 - Read the [Deployment Guide](./DEPLOYMENT_GUIDE.md) for a full checklist covering secrets, build steps, hosting targets, and post-deploy checks.
+- **Vercel (with Vercel Postgres):**
+  1. Create a Vercel Postgres database and copy the generated `DATABASE_URL` (it already includes `sslmode=require`).
+  2. Add `DATABASE_URL`, `JWT_SECRET`, SMTP, and reCAPTCHA variables to the Vercel dashboard (Production + Preview).
+  3. Seed the data locally by exporting the same `DATABASE_URL` and running `npm run seed`. The script will use PostgreSQL when the variable is present (creating tables on the fly) and falls back to the JSON store otherwise. You can also execute the SQL files in `scripts/` if you prefer manual control.
+  4. Trigger a deployment via the Vercel dashboard or CLI. When the database is configured the JSON files under `data/` are ignored and all admin changes persist through PostgreSQL.
 - **Docker quick start:**
   1. `cp .env.docker.example .env.docker`
   2. `docker compose run --rm app npm run setup-admin`

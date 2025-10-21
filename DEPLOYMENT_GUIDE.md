@@ -32,19 +32,20 @@ The following sections expand on each step and cover additional checks for produ
    - `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` for Google reCAPTCHA v2.
    - `JWT_SECRET` with a long random value for signing auth tokens.
    - Contact email settings (`CONTACT_RECIPIENT_EMAIL`, `SMTP_FROM_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SECURE`).
-   - Optional `DATABASE_URL` if migrating away from JSON persistence.
+   - `DATABASE_URL` pointing at PostgreSQL when deploying to Vercel or any environment where the local JSON files would be ephemeral.
+   - Optional connection tuning: set `DATABASE_SSL=true` for managed hosts that require TLS (Vercel Postgres ships with `?sslmode=require` by default) and `DATABASE_POOL_MAX` if you need to cap concurrent connections.
 3. Commit secrets to your hosting provider, not to source control.
 
 > **Tip:** The contact form API route requires `SMTP_HOST` and `SMTP_PORT`. Missing values will make requests fail with a 500 response.
 
 ## 3. Prepare Data (Optional but Recommended)
-If you are using the JSON data store, create or reset admin credentials before deployment:
+If you are using the JSON data store locally, create or reset admin credentials before deployment:
 
 ```bash
 npm run setup-admin
 ```
 
-The script writes `data/admin-users.json` with hashed credentials you can share securely with your team.
+The script writes `data/admin-users.json` with hashed credentials you can share securely with your team. When `DATABASE_URL` is present, the same command transparently switches to PostgreSQL, ensures the schema exists, and inserts the same starter data without touching the JSON files.
 
 ## 4. Build the Application
 Run the production build locally or in CI to validate configuration:
@@ -67,10 +68,13 @@ npm run start -- --hostname 0.0.0.0 --port ${PORT:-3000}
 Run the command under a process manager such as systemd or PM2 and place a reverse proxy (Nginx, Caddy, etc.) in front for TLS termination.
 
 ## 6. Deploying to Vercel
-1. Connect your Git repository to Vercel or use the `vercel` CLI from the project root.
-2. Add all environment variables (production and preview) in the Vercel dashboard before the first build.
-3. Trigger a deployment. Vercel will execute `npm install`, `npm run build`, and host the app on its Node.js runtime automatically.
-4. Remember that the JSON files under `data/` are **not persistent** on serverless platforms; switch to PostgreSQL or another managed store if you need durable writes.
+1. Provision a [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres) database (or supply your own managed PostgreSQL instance) and copy the `DATABASE_URL` connection string.
+2. In the Vercel dashboard, add the production & preview environment variables listed above, including `DATABASE_URL`, `JWT_SECRET`, and the SMTP/reCAPTCHA secrets.
+3. Seed the database once before your first deploy:
+   - Locally, export `DATABASE_URL` (and `DATABASE_SSL=true` if required) and run `npm run seed`. The script will connect to PostgreSQL, create any missing tables, and upsert the default admin user plus sample companies.
+   - Alternatively, run the SQL files in `scripts/` (`01-create-tables.sql` then `02-seed-data.sql`) against your database with `psql` if you prefer managing the seed data manually.
+4. Connect the repository to Vercel or run the `vercel` CLI. Deployments will run `npm install` and `npm run build` automatically.
+5. JSON files in `data/` remain available for local development, but they are ignored whenever `DATABASE_URL` is present. All admin mutations in production will persist through PostgreSQL.
 
 ## 7. Deploying to Other Hosts
 1. Upload the repository (or CI build artifacts) to your server.

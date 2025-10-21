@@ -14,11 +14,11 @@ INSERT INTO companies (name, slug, description, category, subcategory, email, ph
 ('Sunshine Construction', 'sunshine-construction', 'Innovative construction firm delivering quality infrastructure and building projects.', 'Construction', 'General Contracting', 'info@sunshineconstruction.et', '+251-11-662-7070', NULL, 'CMC Road', 'Addis Ababa', 'Addis Ababa', FALSE, FALSE, FALSE, 3.8, 89, 2340, 2010, '50-100');
 
 -- Insert sample users
-INSERT INTO users (email, password_hash, full_name, phone, role) VALUES
-('admin@yegnabiz.com', '$2a$10$example_hash_1', 'Admin User', '+251-911-123456', 'admin'),
-('owner1@example.com', '$2a$10$example_hash_2', 'Abebe Kebede', '+251-911-234567', 'business_owner'),
-('owner2@example.com', '$2a$10$example_hash_3', 'Tigist Alemu', '+251-911-345678', 'business_owner'),
-('user1@example.com', '$2a$10$example_hash_4', 'Dawit Tesfaye', '+251-911-456789', 'user');
+INSERT INTO users (email, password_hash, full_name, phone, location, role, status) VALUES
+('admin@yegnabiz.com', '$2b$10$0EEUCCeH9NsfotSO.UiyiuQkSemZEE1/WrOOKrN/6wjMgK7NuFWTa', 'Admin User', '+251-911-123456', 'Addis Ababa, Ethiopia', 'admin', 'active'),
+('owner1@example.com', '$2b$10$tzq6Rigk9GgQl9hIIIMF6uWURzyrNDfpitUa.ZN2027jFU5MokK4y', 'Abebe Kebede', '+251-911-234567', 'Bahir Dar, Ethiopia', 'business_owner', 'active'),
+('owner2@example.com', '$2b$10$K3Qxboff5rqML5oqkbV8RO7GKzsSR/35DyZCk4GOYb/8KMbAs7mmq', 'Tigist Alemu', '+251-911-345678', 'Hawassa, Ethiopia', 'business_owner', 'active'),
+('user1@example.com', '$2b$10$bjbgjfF.qBBAP.LykbdOWOhli1cYT9CtRlbLhyIOhQJWUr/lx4Uc2', 'Dawit Tesfaye', '+251-911-456789', 'Gondar, Ethiopia', 'user', 'active');
 
 -- Link owners to companies
 INSERT INTO company_owners (user_id, company_id, role) VALUES
@@ -26,11 +26,11 @@ INSERT INTO company_owners (user_id, company_id, role) VALUES
 (3, 8, 'owner');
 
 -- Insert sample reviews
-INSERT INTO reviews (company_id, user_id, rating, title, comment, is_verified) VALUES
-(1, 4, 4, 'Good Service', 'Reliable network coverage across the country. Customer service could be improved.', TRUE),
-(2, 4, 5, 'Excellent Airline', 'World-class service and comfortable flights. Proud of Ethiopian Airlines!', TRUE),
-(3, 4, 4, 'Professional Banking', 'Good banking services with modern facilities. Mobile app is very convenient.', TRUE),
-(9, 4, 5, 'Amazing Stay', 'Beautiful hotel with excellent service. The staff were very welcoming and professional.', TRUE);
+INSERT INTO reviews (company_id, user_id, user_name, rating, title, comment, is_verified) VALUES
+(1, 4, 'Dawit Tesfaye', 4, 'Good Service', 'Reliable network coverage across the country. Customer service could be improved.', TRUE),
+(2, 4, 'Dawit Tesfaye', 5, 'Excellent Airline', 'World-class service and comfortable flights. Proud of Ethiopian Airlines!', TRUE),
+(3, 4, 'Dawit Tesfaye', 4, 'Professional Banking', 'Good banking services with modern facilities. Mobile app is very convenient.', TRUE),
+(9, 4, 'Dawit Tesfaye', 5, 'Amazing Stay', 'Beautiful hotel with excellent service. The staff were very welcoming and professional.', TRUE);
 
 -- Insert sample social links
 INSERT INTO social_links (company_id, platform, url) VALUES

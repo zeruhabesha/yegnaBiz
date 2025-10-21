@@ -83,6 +83,11 @@ async function main() {
   console.log('============================')
   console.log('')
 
+  if (process.env.DATABASE_URL) {
+    console.warn('⚠️  DATABASE_URL detected. This script only resets the JSON store; use "npm run seed" to seed PostgreSQL.')
+    console.log('')
+  }
+
   await createFreshAdmin()
 
   console.log('')

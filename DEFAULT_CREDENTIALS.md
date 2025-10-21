@@ -13,9 +13,14 @@ After running the setup, you can access the application with these default crede
 ## 🔧 Setup Commands
 
 ### Set up admin credentials:
-```bash
-npm run setup-admin
-```
+- **PostgreSQL or JSON auto-detect:**
+  ```bash
+  npm run seed
+  ```
+- **Force JSON reset only:**
+  ```bash
+  npm run setup-admin
+  ```
 
 ### Start development server:
 ```bash
