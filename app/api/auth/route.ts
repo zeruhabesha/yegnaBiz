@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { prisma } from '@/lib/prisma'
+import type { User } from '@prisma/client'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -21,11 +22,11 @@ interface LoginRequest {
 }
 
 interface RegisterRequest {
-  full_name: string
+  fullName: string
   email: string
   password: string
   phone?: string
-  location?: string
+  // location?: string  // Removed since it doesn't exist in database
 }
 
 function isAuthUser(payload: any): payload is AuthUser {
@@ -155,9 +156,9 @@ async function handleLogin(data: LoginRequest) {
 }
 
 async function handleRegister(data: RegisterRequest) {
-  const { full_name, email, password: userPassword, phone, location } = data
+  const { fullName, email, password: userPassword, phone } = data
 
-  if (!full_name || !email || !userPassword) {
+  if (!fullName || !email || !userPassword) {
     return NextResponse.json(
       { error: 'Full name, email, and password are required' },
       { status: 400 }
@@ -182,12 +183,11 @@ async function handleRegister(data: RegisterRequest) {
   // Create new user
   const newUser = await prisma.user.create({
     data: {
-      fullName: full_name,
+      fullName: fullName,
       email,
       password: hashedPassword,
       role: 'user',
       phone: phone || null,
-      location: location || null,
     }
   })
 
