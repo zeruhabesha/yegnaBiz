@@ -1,0 +1,5 @@
+# JWT Secret for Authentication
+JWT_SECRET=sk_JRz8p3rFvQe9bA1uYdH2wLx6sNf5TgVk0iMoC4qE7bZ
+
+# Database Configuration - Neon PostgreSQL (Direct Connection)
+DATABASE_URL="postgresql://neondb_owner:npg_q4FuXWaH0Blv@ep-twilight-silence-adn5hrwh-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"

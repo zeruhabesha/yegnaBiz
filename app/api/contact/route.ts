@@ -24,7 +24,6 @@ const ContactSchema = z.object({
   email: z.string().email().max(254),
   subject: z.string().min(2).max(150),
   message: z.string().min(10).max(5000),
-  recaptchaToken: z.string().optional(),
 })
 
 // Basic sanitizer to strip HTML tags and dangerous chars
@@ -56,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const { name, email, subject, message, recaptchaToken } = parsed.data
+    const { name, email, subject, message } = parsed.data
 
     // Sanitize fields
     const safe = {
@@ -64,27 +63,6 @@ export async function POST(request: Request) {
       email: sanitize(email),
       subject: sanitize(subject),
       message: sanitize(message),
-    }
-
-    // Verify reCAPTCHA token (only if configured)
-    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
-    if (recaptchaSecret && recaptchaToken) {
-      const verifyResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `secret=${recaptchaSecret}&response=${recaptchaToken}`,
-      })
-
-      const verifyData = await verifyResponse.json()
-
-      if (!verifyData.success) {
-        return NextResponse.json(
-          { error: 'reCAPTCHA verification failed. Please try again.' },
-          { status: 400 }
-        )
-      }
     }
 
     const transporter = await getTransporter()

@@ -29,16 +29,9 @@ SMTP_PASS="your-app-password"
 SMTP_SECURE="false"
 
 # =============================================================================
-# REQUIRED: reCAPTCHA (for spam protection)
-# =============================================================================
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY="your-recaptcha-site-key"
-RECAPTCHA_SECRET_KEY="your-recaptcha-secret-key"
-
-# =============================================================================
 # OPTIONAL: Additional Configuration
 # =============================================================================
 NODE_ENV="production"
 
-# Get reCAPTCHA keys: https://www.google.com/recaptcha/admin/create
 # Get Prisma Accelerate: https://console.prisma.io/
 # Generate JWT Secret: openssl rand -base64 32

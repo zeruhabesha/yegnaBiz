@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef } from "react"
-import ReCAPTCHA from "react-google-recaptcha"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,19 +19,9 @@ export default function ContactPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Get reCAPTCHA token (only if reCAPTCHA is enabled)
-    const recaptchaToken = recaptchaRef.current?.getValue()
-    const recaptchaEnabled = !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-    
-    if (recaptchaEnabled && !recaptchaToken) {
-      alert("Please complete the reCAPTCHA verification")
-      return
-    }
 
     setIsSubmitting(true)
 
@@ -44,7 +33,6 @@ export default function ContactPage() {
         },
         body: JSON.stringify({
           ...formData,
-          recaptchaToken,
         }),
       })
 
@@ -60,9 +48,6 @@ export default function ContactPage() {
       console.error('Error submitting form:', error)
       alert("An error occurred. Please try again or email us directly at zeruhabesha09@gmail.com")
     } finally {
-      if (recaptchaEnabled) {
-        recaptchaRef.current?.reset()
-      }
       setIsSubmitting(false)
     }
   }
@@ -162,17 +147,6 @@ export default function ContactPage() {
                           required
                         />
                       </div>
-
-                      {/* reCAPTCHA - Only show if site key is configured */}
-                      {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
-                        <div className="flex justify-start">
-                          <ReCAPTCHA
-                            ref={recaptchaRef}
-                            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                            theme="light"
-                          />
-                        </div>
-                      )}
 
                       <Button type="submit" size="lg" className="w-full md:w-auto" disabled={isSubmitting}>
                         {isSubmitting ? "Sending..." : "Send Message"}

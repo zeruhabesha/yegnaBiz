@@ -1,0 +1,8 @@
+# JWT Secret for Authentication
+JWT_SECRET=sk_JRz8p3rFvQe9bA1uYdH2wLx6sNf5TgVk0iMoC4qE7bZ
+
+# Database Configuration - Neon PostgreSQL
+DATABASE_URL="postgresql://neondb_owner:npg_q4FuXWaH0Blv@ep-twilight-silence-adn5hrwh-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+# Alternative: Prisma Accelerate (uncomment to use instead of direct Neon connection)
+# DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza18ySTlOVGJ2R044R2UzQkxKQ25PZHkiLCJhcGlfa2V5IjoiMDFLODU5QjE3VFpBNE5RMzlaV042VlpZODYiLCJ0ZW5hbnRfaWQiOiJhNjI3NWVlZmY2YWQ2OWZjZmIyM2EyZTIxY2IzZTM1NDBiYzYwMjI2NDZmY2Q3YzVlMjJmNjBiMTRlNzdmOTlhIiwiaW50ZXJuYWxfc2VjcmV0IjoiMjk5ZmExMDgtYjhhNy00NmJlLWJjYTctMTdlZGY4NjgwODc3In0.t3H3ah7C-dh-eeVNIWtNFH9A3oHjkuuN5RK14BHFEB4"
