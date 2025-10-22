@@ -88,7 +88,14 @@ export async function POST(request: Request) {
     }
 
     const transporter = await getTransporter()
-    const RECIPIENT_EMAIL = process.env.CONTACT_RECIPIENT_EMAIL || 'zeruhabesha09@gmail.com'
+    const recipientEmail = process.env.CONTACT_RECIPIENT_EMAIL
+    if (!recipientEmail) {
+      console.error('Contact form misconfiguration: CONTACT_RECIPIENT_EMAIL is not set')
+      return NextResponse.json(
+        { error: 'Email delivery is not configured. Please try again later.' },
+        { status: 500 }
+      )
+    }
     const fromAddress = process.env.SMTP_FROM_EMAIL || `YegnaBiz <${process.env.SMTP_USER ?? 'no-reply@yegnabiz.com'}>`
 
     const plainMessage = [
@@ -115,7 +122,7 @@ export async function POST(request: Request) {
 
     await transporter.sendMail({
       from: fromAddress,
-      to: RECIPIENT_EMAIL,
+      to: recipientEmail,
       subject: `[YegnaBiz Contact] ${safe.subject}`,
       text: plainMessage,
       html: htmlMessage,

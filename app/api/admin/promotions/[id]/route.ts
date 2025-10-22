@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteAdminPromotion, getAdminPromotionById, updateAdminPromotion } from '@/lib/data/promotions'
+import { requireAdminForDynamic } from '@/lib/auth-middleware'
 
-// GET /api/admin/promotions/[id] - Get single promotion
-export async function GET(
+// GET /api/admin/promotions/[id] - Get single promotion (Admin only)
+export const GET = requireAdminForDynamic(async (
   request: NextRequest,
+  _user,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
 
@@ -29,13 +31,14 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})
 
-// PUT /api/admin/promotions/[id] - Update promotion
-export async function PUT(
+// PUT /api/admin/promotions/[id] - Update promotion (Admin only)
+export const PUT = requireAdminForDynamic(async (
   request: NextRequest,
+  _user,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
     const body = await request.json()
@@ -77,13 +80,14 @@ export async function PUT(
       { status: 500 }
     )
   }
-}
+})
 
-// DELETE /api/admin/promotions/[id] - Delete promotion
-export async function DELETE(
+// DELETE /api/admin/promotions/[id] - Delete promotion (Admin only)
+export const DELETE = requireAdminForDynamic(async (
   request: NextRequest,
+  _user,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
 
@@ -107,4 +111,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
+})

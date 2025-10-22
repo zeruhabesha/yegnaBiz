@@ -6,13 +6,27 @@ export type { AdminCompany, AdminPromotion, AdminUser } from "@/lib/types/admin"
 
 const API_BASE_URL = '/api/admin'
 
+function getAuthHeaders(isJson = true): Record<string, string> {
+  const headers: Record<string, string> = {}
+  if (isJson) headers['Content-Type'] = 'application/json'
+  try {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token')
+      if (token) headers['Authorization'] = `Bearer ${token}`
+    }
+  } catch (e) {
+    // ignore (e.g., server-side)
+  }
+  return headers
+}
+
 export async function getUsers(search?: string, status?: string, role?: string): Promise<AdminUser[]> {
   const params = new URLSearchParams()
   if (search) params.append('search', search)
   if (status && status !== 'all') params.append('status', status)
   if (role && role !== 'all') params.append('role', role)
 
-  const response = await fetch(`${API_BASE_URL}/users?${params}`)
+  const response = await fetch(`${API_BASE_URL}/users?${params}`, { headers: getAuthHeaders(false) })
   const data = await response.json()
 
   if (!data.success) {
@@ -23,7 +37,7 @@ export async function getUsers(search?: string, status?: string, role?: string):
 }
 
 export async function getUser(id: number): Promise<AdminUser> {
-  const response = await fetch(`${API_BASE_URL}/users/${id}`)
+  const response = await fetch(`${API_BASE_URL}/users/${id}`, { headers: getAuthHeaders(false) })
   const data = await response.json()
 
   if (!data.success) {
@@ -36,9 +50,7 @@ export async function getUser(id: number): Promise<AdminUser> {
 export async function createUser(userData: Partial<AdminUser>): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/users`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(userData),
   })
   const data = await response.json()
@@ -53,9 +65,7 @@ export async function createUser(userData: Partial<AdminUser>): Promise<AdminUse
 export async function updateUser(id: number, userData: Partial<AdminUser>): Promise<AdminUser> {
   const response = await fetch(`${API_BASE_URL}/users/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(userData),
   })
   const data = await response.json()
@@ -70,6 +80,7 @@ export async function updateUser(id: number, userData: Partial<AdminUser>): Prom
 export async function deleteUser(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/users/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(false),
   })
   const data = await response.json()
 
@@ -85,7 +96,7 @@ export async function getCompanies(search?: string, status?: string, category?: 
   if (status && status !== 'all') params.append('status', status)
   if (category && category !== 'all') params.append('category', category)
 
-  const response = await fetch(`${API_BASE_URL}/companies?${params}`)
+  const response = await fetch(`${API_BASE_URL}/companies?${params}`, { headers: getAuthHeaders(false) })
   const data = await response.json()
 
   if (!data.success) {
@@ -96,7 +107,7 @@ export async function getCompanies(search?: string, status?: string, category?: 
 }
 
 export async function getCompany(id: number): Promise<AdminCompany> {
-  const response = await fetch(`${API_BASE_URL}/companies/${id}`)
+  const response = await fetch(`${API_BASE_URL}/companies/${id}`, { headers: getAuthHeaders(false) })
   const data = await response.json()
 
   if (!data.success) {
@@ -109,9 +120,7 @@ export async function getCompany(id: number): Promise<AdminCompany> {
 export async function createCompany(companyData: Partial<AdminCompany>): Promise<AdminCompany> {
   const response = await fetch(`${API_BASE_URL}/companies`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(companyData),
   })
   const data = await response.json()
@@ -126,9 +135,7 @@ export async function createCompany(companyData: Partial<AdminCompany>): Promise
 export async function updateCompany(id: number, companyData: Partial<AdminCompany>): Promise<AdminCompany> {
   const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(companyData),
   })
   const data = await response.json()
@@ -143,6 +150,7 @@ export async function updateCompany(id: number, companyData: Partial<AdminCompan
 export async function deleteCompany(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(false),
   })
   const data = await response.json()
 
@@ -158,7 +166,7 @@ export async function getPromotions(search?: string, status?: string, type?: str
   if (status && status !== 'all') params.append('status', status)
   if (type && type !== 'all') params.append('type', type)
 
-  const response = await fetch(`${API_BASE_URL}/promotions?${params}`)
+  const response = await fetch(`${API_BASE_URL}/promotions?${params}`, { headers: getAuthHeaders(false) })
   const data = await response.json()
 
   if (!data.success) {
@@ -169,7 +177,7 @@ export async function getPromotions(search?: string, status?: string, type?: str
 }
 
 export async function getPromotion(id: number): Promise<AdminPromotion> {
-  const response = await fetch(`${API_BASE_URL}/promotions/${id}`)
+  const response = await fetch(`${API_BASE_URL}/promotions/${id}`, { headers: getAuthHeaders(false) })
   const data = await response.json()
 
   if (!data.success) {
@@ -182,9 +190,7 @@ export async function getPromotion(id: number): Promise<AdminPromotion> {
 export async function createPromotion(promotionData: Partial<AdminPromotion>): Promise<AdminPromotion> {
   const response = await fetch(`${API_BASE_URL}/promotions`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(promotionData),
   })
   const data = await response.json()
@@ -199,9 +205,7 @@ export async function createPromotion(promotionData: Partial<AdminPromotion>): P
 export async function updatePromotion(id: number, promotionData: Partial<AdminPromotion>): Promise<AdminPromotion> {
   const response = await fetch(`${API_BASE_URL}/promotions/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(promotionData),
   })
   const data = await response.json()
@@ -216,6 +220,7 @@ export async function updatePromotion(id: number, promotionData: Partial<AdminPr
 export async function deletePromotion(id: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/promotions/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(false),
   })
   const data = await response.json()
 

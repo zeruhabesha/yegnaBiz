@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminPromotion, listAdminPromotions } from '@/lib/data/promotions'
+import { requireAdmin } from '@/lib/auth-middleware'
 
 // Optional Prisma integration
 let prisma: any = null
@@ -16,8 +17,8 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-// GET /api/admin/promotions - Get all promotions with filtering
-export async function GET(request: NextRequest) {
+// GET /api/admin/promotions - Get all promotions with filtering (Admin only)
+export const GET = requireAdmin(async (request: NextRequest, _user) => {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
@@ -56,10 +57,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-// POST /api/admin/promotions - Create new promotion
-export async function POST(request: NextRequest) {
+// POST /api/admin/promotions - Create new promotion (Admin only)
+export const POST = requireAdmin(async (request: NextRequest, _user) => {
   try {
     const body = await request.json()
     const {
@@ -118,4 +119,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

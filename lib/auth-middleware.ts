@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable must be set')
+}
 
 interface AuthUser {
   userId: number
   email: string
   role: string
+}
+
+function isAuthUser(payload: any): payload is AuthUser {
+  return (
+    payload &&
+    typeof payload === 'object' &&
+    typeof payload.userId === 'number' &&
+    typeof payload.email === 'string' &&
+    typeof payload.role === 'string'
+  )
 }
 
 export function verifyToken(request: NextRequest): AuthUser | null {
@@ -17,8 +31,13 @@ export function verifyToken(request: NextRequest): AuthUser | null {
     }
 
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser
-    return decoded
+    const decoded = jwt.verify(token, JWT_SECRET!)
+
+    if (isAuthUser(decoded)) {
+      return decoded
+    }
+
+    return null
   } catch (error) {
     return null
   }

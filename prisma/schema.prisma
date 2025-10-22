@@ -8,46 +8,18 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  fullName   String?
-  email      String   @unique
-  password   String?
-  role       String   @default("user")
-  phone      String?
-  location   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  companies  Company[] @relation("OwnerCompanies")
-  reviews    Review[]
-}
-
-model Company {
-  id            Int      @id @default(autoincrement())
-  name          String
-  slug          String   @unique
-  description   String?
-  category      String
-  subcategory   String?
-  city          String?
-  region        String?
-  country       String?
-  address       String?
-  email         String?
-  phone         String?
-  website       String?
-  isVerified    Boolean  @default(false)
-  isFeatured    Boolean  @default(false)
-  isPremium     Boolean  @default(false)
-  rating        Float?   
-  reviewCount   Int      @default(0)
-  viewCount     Int      @default(0)
-  establishedYear Int?
-  employeeCount Int?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  ownerId       Int?
-  owner         User?    @relation("OwnerCompanies", fields: [ownerId], references: [id])
-  reviews       Review[]
+  id           Int       @id @default(autoincrement())
+  full_name    String?   @map("fullName")
+  email        String    @unique
+  password_hash String?  @map("password")
+  role         String    @default("user")
+  isActive     Boolean   @default(true) @map("is_active")
+  phone        String?
+  location     String?
+  created_at   DateTime  @default(now()) @map("createdAt")
+  updated_at   DateTime  @updatedAt @map("updatedAt")
+  companies    Company[] @relation("OwnerCompanies")
+  reviews      Review[]
 }
 
 model Review {
@@ -77,4 +49,33 @@ model Promotion {
   endDate     DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Company {
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  description   String?
+  category      String
+  subcategory   String?
+  city          String?
+  region        String?
+  country       String?
+  address       String?
+  email         String?
+  phone         String?
+  website       String?
+  isVerified    Boolean  @default(false)
+  isFeatured    Boolean  @default(false)
+  isPremium     Boolean  @default(false)
+  rating        Float?
+  reviewCount   Int      @default(0)
+  viewCount     Int      @default(0)
+  establishedYear Int?
+  employeeCount Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  ownerId       Int?
+  owner         User?    @relation("OwnerCompanies", fields: [ownerId], references: [id])
+  reviews       Review[]
 }

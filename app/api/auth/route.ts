@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { readJsonFile, writeJsonFile } from '@/lib/data/json-store'
+import { prisma } from '@/lib/prisma'
 
-const USERS_FILE = 'admin-users.json'
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable must be set')
+}
+
+interface AuthUser {
+  userId: number
+  email: string
+  role: string
+}
 
 interface LoginRequest {
   email: string
@@ -19,17 +28,14 @@ interface RegisterRequest {
   location?: string
 }
 
-async function readUsers() {
-  try {
-    return await readJsonFile<any[]>(USERS_FILE)
-  } catch (error) {
-    // Return empty array if file doesn't exist
-    return []
-  }
-}
-
-async function writeUsers(users: any[]) {
-  await writeJsonFile(USERS_FILE, users)
+function isAuthUser(payload: any): payload is AuthUser {
+  return (
+    payload &&
+    typeof payload === 'object' &&
+    typeof payload.userId === 'number' &&
+    typeof payload.email === 'string' &&
+    typeof payload.role === 'string'
+  )
 }
 
 // POST /api/auth/login
@@ -66,17 +72,22 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, JWT_SECRET) as any
+    const decoded = jwt.verify(token, JWT_SECRET!)
 
-    const users = await readUsers()
-    const user = users.find((u: any) => u.id === decoded.userId)
+    if (!isAuthUser(decoded)) {
+      return NextResponse.json({ error: 'Invalid token payload' }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Return user without password
-    const { password_hash, ...userWithoutPassword } = user
+    const { password, ...userWithoutPassword } = user
     return NextResponse.json({ user: userWithoutPassword })
   } catch (error) {
     console.error('Get user error:', error)
@@ -85,17 +96,19 @@ export async function GET(request: NextRequest) {
 }
 
 async function handleLogin(data: LoginRequest) {
-  const { email, password } = data
+  const { email, password: userPassword } = data
 
-  if (!email || !password) {
+  if (!email || !userPassword) {
     return NextResponse.json(
       { error: 'Email and password are required' },
       { status: 400 }
     )
   }
 
-  const users = await readUsers()
-  const user = users.find((u: any) => u.email === email)
+  // Find user by email using Prisma
+  const user = await prisma.user.findUnique({
+    where: { email }
+  })
 
   if (!user) {
     return NextResponse.json(
@@ -105,7 +118,7 @@ async function handleLogin(data: LoginRequest) {
   }
 
   // Verify password
-  const isValidPassword = await bcrypt.compare(password, user.password_hash)
+  const isValidPassword = user.password ? await bcrypt.compare(userPassword, user.password) : false
   if (!isValidPassword) {
     return NextResponse.json(
       { error: 'Invalid credentials' },
@@ -114,7 +127,7 @@ async function handleLogin(data: LoginRequest) {
   }
 
   // Check if user is active
-  if (user.status !== 'active') {
+  if (!user.isActive) {
     return NextResponse.json(
       { error: 'Account is not active' },
       { status: 401 }
@@ -128,12 +141,12 @@ async function handleLogin(data: LoginRequest) {
       email: user.email,
       role: user.role,
     },
-    JWT_SECRET,
+    JWT_SECRET!,
     { expiresIn: '7d' }
   )
 
   // Return user without password and token
-  const { password_hash: _, ...userWithoutPassword } = user
+  const { password, ...userWithoutPassword } = user
   return NextResponse.json({
     user: userWithoutPassword,
     token,
@@ -142,19 +155,23 @@ async function handleLogin(data: LoginRequest) {
 }
 
 async function handleRegister(data: RegisterRequest) {
-  const { full_name, email, password, phone, location } = data
+  const { full_name, email, password: userPassword, phone, location } = data
 
-  if (!full_name || !email || !password) {
+  if (!full_name || !email || !userPassword) {
     return NextResponse.json(
       { error: 'Full name, email, and password are required' },
       { status: 400 }
     )
   }
 
-  const users = await readUsers()
+  // Hash password
+  const hashedPassword = await bcrypt.hash(userPassword, 10)
 
   // Check if user already exists
-  const existingUser = users.find((u: any) => u.email === email)
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  })
+
   if (existingUser) {
     return NextResponse.json(
       { error: 'User already exists' },
@@ -162,25 +179,17 @@ async function handleRegister(data: RegisterRequest) {
     )
   }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10)
-
   // Create new user
-  const newUser = {
-    id: Date.now(),
-    full_name,
-    email,
-    password_hash: hashedPassword,
-    role: 'user', // Default role
-    status: 'active',
-    phone: phone || null,
-    location: location || null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-
-  users.push(newUser)
-  await writeUsers(users)
+  const newUser = await prisma.user.create({
+    data: {
+      fullName: full_name,
+      email,
+      password: hashedPassword,
+      role: 'user',
+      phone: phone || null,
+      location: location || null,
+    }
+  })
 
   // Generate JWT token
   const token = jwt.sign(
@@ -189,12 +198,12 @@ async function handleRegister(data: RegisterRequest) {
       email: newUser.email,
       role: newUser.role,
     },
-    JWT_SECRET,
+    JWT_SECRET!,
     { expiresIn: '7d' }
   )
 
   // Return user without password and token
-  const { password_hash: _, ...userWithoutPassword } = newUser
+  const { password, ...userWithoutPassword } = newUser
   return NextResponse.json({
     user: userWithoutPassword,
     token,

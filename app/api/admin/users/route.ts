@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminUser, listAdminUsers } from '@/lib/data/users'
+import { requireAdmin } from '@/lib/auth-middleware'
 
-// GET /api/admin/users - Get all users with filtering
-export async function GET(request: NextRequest) {
+// GET /api/admin/users - Get all users with filtering (Admin only)
+export const GET = requireAdmin(async (request: NextRequest, _user) => {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-// POST /api/admin/users - Create new user
-export async function POST(request: NextRequest) {
+// POST /api/admin/users - Create new user (Admin only)
+export const POST = requireAdmin(async (request: NextRequest, _user) => {
   try {
     const body = await request.json()
     const { full_name, email, password, role = 'user', phone, location } = body
@@ -54,4 +55,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

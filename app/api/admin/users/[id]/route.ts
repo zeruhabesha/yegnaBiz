@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteAdminUser, getAdminUserById, updateAdminUser } from '@/lib/data/users'
+import { requireAdminForDynamic } from '@/lib/auth-middleware'
 
-// GET /api/admin/users/[id] - Get single user
-export async function GET(
+// GET /api/admin/users/[id] - Get single user (Admin only)
+export const GET = requireAdminForDynamic(async (
   request: NextRequest,
+  _user,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
 
@@ -29,13 +31,14 @@ export async function GET(
       { status: 500 }
     )
   }
-}
+})
 
-// PUT /api/admin/users/[id] - Update user
-export async function PUT(
+// PUT /api/admin/users/[id] - Update user (Admin only)
+export const PUT = requireAdminForDynamic(async (
   request: NextRequest,
+  _user,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
     const body = await request.json()
@@ -61,13 +64,14 @@ export async function PUT(
       { status: 500 }
     )
   }
-}
+})
 
-// DELETE /api/admin/users/[id] - Delete user
-export async function DELETE(
+// DELETE /api/admin/users/[id] - Delete user (Admin only)
+export const DELETE = requireAdminForDynamic(async (
   request: NextRequest,
+  _user,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
 
@@ -91,4 +95,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
+})
