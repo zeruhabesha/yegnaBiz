@@ -45,10 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json()
+        const normalizedFullName = data.user.fullName ?? data.user.full_name ?? ''
         setUser({
           id: data.user.id,
           email: data.user.email,
-          fullName: data.user.full_name,
+          fullName: normalizedFullName,
           role: data.user.role,
         })
       } else {
@@ -86,10 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Store token and user data
       localStorage.setItem("auth_token", data.token)
+      const normalizedFullName = data.user.fullName ?? data.user.full_name ?? ''
       setUser({
         id: data.user.id,
         email: data.user.email,
-        fullName: data.user.full_name,
+        fullName: normalizedFullName,
         role: data.user.role,
       })
     } catch (error) {
@@ -109,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           action: 'register',
-          full_name: fullName,
+          fullName,
           email,
           password,
         }),
@@ -123,10 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Store token and user data
       localStorage.setItem("auth_token", data.token)
+      const normalizedFullName = data.user.fullName ?? data.user.full_name ?? ''
       setUser({
         id: data.user.id,
         email: data.user.email,
-        fullName: data.user.full_name,
+        fullName: normalizedFullName,
         role: data.user.role,
       })
     } catch (error) {
